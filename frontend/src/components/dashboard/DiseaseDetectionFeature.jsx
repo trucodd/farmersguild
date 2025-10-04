@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Camera, Upload, ArrowLeft, Shield, Pill, Send, Bot, User, Trash2 } from 'lucide-react'
+import { api } from '../../utils/api'
+import MarkdownRenderer from '../ui/MarkdownRenderer'
 
 const DiseaseDetectionFeature = ({ selectedCrop }) => {
   const [diseaseHistory, setDiseaseHistory] = useState([])
@@ -51,47 +53,84 @@ const DiseaseDetectionFeature = ({ selectedCrop }) => {
     }
   }
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0]
     if (file) {
       const reader = new FileReader()
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         setIsAnalyzing(true)
         setDiseaseView('result')
         
-        setTimeout(() => {
+        try {
+          const imageBase64 = e.target.result.split(',')[1] // Remove data:image/jpeg;base64, prefix
+          
+          console.log('=== DISEASE ANALYSIS REQUEST ===')
+          console.log('Crop ID:', selectedCrop.id)
+          console.log('Image data length:', imageBase64.length)
+          console.log('Token present:', !!localStorage.getItem('token'))
+          
+          const response = await api.analyzeDisease(imageBase64, selectedCrop.id)
+          
+          console.log('Response status:', response.status)
+          console.log('Response ok:', response.ok)
+          
+          if (!response.ok) {
+            const errorText = await response.text()
+            console.error('Error response:', errorText)
+            throw new Error(`Failed to analyze image: ${response.status} - ${errorText}`)
+          }
+          
+          const result = await response.json()
+          
           const prediction = {
             id: Date.now(),
             image: e.target.result,
-            disease: 'Powdery Mildew',
-            cause: 'high humidity and poor ventilation',
-            confidence: 87,
+            disease: result.disease,
+            cause: result.cause,
+            confidence: result.confidence,
+            severity: result.severity,
             timestamp: new Date(),
-            precautions: [
-              'Improve air circulation around plants',
-              'Avoid overhead watering',
-              'Remove affected leaves immediately',
-              'Maintain proper plant spacing'
-            ],
-            treatment: [
-              'Apply neem oil spray every 7 days',
-              'Use baking soda solution (1 tsp per liter)',
-              'Apply copper-based fungicide',
-              'Increase sunlight exposure'
-            ]
+            precautions: result.precautions,
+            treatment: result.treatment
           }
+          
           setCurrentPrediction(prediction)
           setDiseaseHistory(prev => [prediction, ...prev])
           setIsAnalyzing(false)
           
-          // Initialize chat with disease context
-          setChatMessages([{
-            id: Date.now(),
-            type: 'bot',
-            content: `I've detected ${prediction.disease} in your ${selectedCrop.name}. This is typically caused by ${prediction.cause}. Feel free to ask me any questions about this disease or how to manage it!`,
-            timestamp: new Date()
-          }])
-        }, 3000)
+          // Initialize chat with AI-generated welcome message
+          try {
+            const welcomeResponse = await api.chatAboutDisease(
+              prediction.disease,
+              selectedCrop.id,
+              `I just analyzed an image and detected ${prediction.disease}. Please provide a welcome message and brief explanation.`
+            )
+            
+            if (welcomeResponse.ok) {
+              const welcomeResult = await welcomeResponse.json()
+              setChatMessages([{
+                id: Date.now(),
+                type: 'bot',
+                content: welcomeResult.response,
+                timestamp: new Date()
+              }])
+            }
+          } catch (error) {
+            console.error('Error getting welcome message:', error)
+            setChatMessages([{
+              id: Date.now(),
+              type: 'bot',
+              content: `Analysis complete. Feel free to ask me any questions!`,
+              timestamp: new Date()
+            }])
+          }
+        } catch (error) {
+          console.error('Error analyzing image:', error)
+          setIsAnalyzing(false)
+          
+          alert(`Failed to analyze image: ${error.message}`)
+          setDiseaseView('upload')
+        }
       }
       reader.readAsDataURL(file)
     }
@@ -103,16 +142,38 @@ const DiseaseDetectionFeature = ({ selectedCrop }) => {
     setShowPrecautions(false)
     setShowTreatment(false)
     
-    // Restore chat for this prediction
-    setChatMessages([{
-      id: Date.now(),
-      type: 'bot',
-      content: `Welcome back! I previously detected ${prediction.disease} in your ${selectedCrop.name}. What would you like to know about this disease?`,
-      timestamp: new Date()
-    }])
+    // Get AI welcome message for returning to this prediction
+    const getWelcomeMessage = async () => {
+      try {
+        const response = await api.chatAboutDisease(
+          prediction.disease,
+          selectedCrop.id,
+          `Welcome the user back to discuss ${prediction.disease} that was previously detected.`
+        )
+        
+        if (response.ok) {
+          const result = await response.json()
+          setChatMessages([{
+            id: Date.now(),
+            type: 'bot',
+            content: result.response,
+            timestamp: new Date()
+          }])
+        }
+      } catch (error) {
+        setChatMessages([{
+          id: Date.now(),
+          type: 'bot',
+          content: `Welcome back! What would you like to know?`,
+          timestamp: new Date()
+        }])
+      }
+    }
+    
+    getWelcomeMessage()
   }
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault()
     if (!inputMessage.trim() || isLoadingChat) return
 
@@ -124,20 +185,43 @@ const DiseaseDetectionFeature = ({ selectedCrop }) => {
     }
 
     setChatMessages(prev => [...prev, userMessage])
+    const messageToSend = inputMessage
     setInputMessage('')
     setIsLoadingChat(true)
 
-    // Simulate AI response with disease context
-    setTimeout(() => {
+    try {
+      const response = await api.chatAboutDisease(
+        currentPrediction.disease,
+        selectedCrop.id,
+        messageToSend
+      )
+      
+      if (!response.ok) {
+        throw new Error('Failed to get response')
+      }
+      
+      const result = await response.json()
+      
       const botResponse = {
         id: Date.now() + 1,
         type: 'bot',
-        content: `Regarding ${currentPrediction.disease} in your ${selectedCrop.name}: This disease typically spreads in ${currentPrediction.cause} conditions. I recommend monitoring your crop closely and applying the treatments we discussed. Would you like specific guidance on timing or application methods?`,
+        content: result.response,
         timestamp: new Date()
       }
+      
       setChatMessages(prev => [...prev, botResponse])
+    } catch (error) {
+      console.error('Error getting AI response:', error)
+      const errorResponse = {
+        id: Date.now() + 1,
+        type: 'bot',
+        content: `I'm having trouble processing your question about ${currentPrediction.disease}. Please try asking again or consult with a local agricultural expert for immediate assistance.`,
+        timestamp: new Date()
+      }
+      setChatMessages(prev => [...prev, errorResponse])
+    } finally {
       setIsLoadingChat(false)
-    }, 1500)
+    }
   }
 
   return (
@@ -183,10 +267,10 @@ const DiseaseDetectionFeature = ({ selectedCrop }) => {
                     />
                     <div className="flex-1 cursor-pointer" onClick={() => selectPrediction(prediction)}>
                       <p className="font-semibold text-gray-900">
-                        Disease: {prediction.disease}
+                        Result: {prediction.disease}
                       </p>
                       <p className="text-sm text-gray-600">
-                        Caused by {prediction.cause}
+                        {prediction.cause}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
                         {prediction.timestamp.toLocaleDateString()} at {prediction.timestamp.toLocaleTimeString()}
@@ -194,7 +278,7 @@ const DiseaseDetectionFeature = ({ selectedCrop }) => {
                     </div>
                     <div className="flex items-center space-x-3">
                       <div className="text-right">
-                        <span className="text-sm font-medium text-red-600">
+                        <span className="text-sm font-medium text-blue-600">
                           {prediction.confidence}% confidence
                         </span>
                       </div>
@@ -269,9 +353,9 @@ const DiseaseDetectionFeature = ({ selectedCrop }) => {
               </div>
             ) : currentPrediction && (
               <div>
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                  <p className="text-red-800 font-medium">
-                    Disease: {currentPrediction.disease} – Caused by {currentPrediction.cause}.
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <p className="text-blue-800 font-medium">
+                    Analysis Result: {currentPrediction.disease} – {currentPrediction.cause}
                   </p>
                 </div>
                 
@@ -380,7 +464,11 @@ const DiseaseDetectionFeature = ({ selectedCrop }) => {
                             ? 'bg-blue-600 text-white' 
                             : 'bg-gray-100 text-gray-900'
                         }`}>
-                          <p>{message.content}</p>
+                          {message.type === 'user' ? (
+                            <p>{message.content}</p>
+                          ) : (
+                            <MarkdownRenderer content={message.content} />
+                          )}
                         </div>
                       </div>
                     </div>
