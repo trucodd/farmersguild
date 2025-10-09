@@ -99,7 +99,7 @@ class DiseaseDetection(Base):
     __tablename__ = "disease_detections"
     
     id = Column(Integer, primary_key=True, index=True)
-    crop_id = Column(Integer, ForeignKey("crops.id"))
+    crop_id = Column(Integer, ForeignKey("crops.id"), nullable=False)
     disease_name = Column(String)
     confidence = Column(Float)
     severity = Column(String)
@@ -125,8 +125,8 @@ class ActivityLog(Base):
     __tablename__ = "activity_logs"
     
     id = Column(Integer, primary_key=True, index=True)
-    crop_id = Column(Integer, ForeignKey("crops.id"))
-    activity_type = Column(String)  # watering, fertilizing, pruning, etc.
+    crop_id = Column(Integer, ForeignKey("crops.id"), nullable=False)
+    activity_type = Column(String)
     description = Column(Text)
     quantity = Column(Float)
     unit = Column(String)
@@ -137,8 +137,17 @@ class CropConversation(Base):
     __tablename__ = "crop_conversations"
     
     id = Column(Integer, primary_key=True, index=True)
-    crop_id = Column(Integer, ForeignKey("crops.id"))
+    crop_id = Column(Integer, ForeignKey("crops.id"), nullable=False)
     message = Column(Text)
     response = Column(Text)
     context_used = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class DiseaseChatHistory(Base):
+    __tablename__ = "disease_chat_history"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    detection_id = Column(Integer, ForeignKey("disease_detections.id"), nullable=False)
+    message = Column(Text)
+    response = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)

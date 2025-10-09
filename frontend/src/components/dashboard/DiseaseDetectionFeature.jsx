@@ -3,8 +3,7 @@ import { Camera, Upload, ArrowLeft, Shield, Pill, Send, Bot, User, Trash2 } from
 import { api } from '../../utils/api'
 import MarkdownRenderer from '../ui/MarkdownRenderer'
 
-const DiseaseDetectionFeature = ({ selectedCrop }) => {
-  const [diseaseHistory, setDiseaseHistory] = useState([])
+const DiseaseDetectionFeature = ({ selectedCrop, diseaseHistory, setDiseaseHistory, loadCropData }) => {
   const [currentPrediction, setCurrentPrediction] = useState(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [showPrecautions, setShowPrecautions] = useState(false)
@@ -14,42 +13,23 @@ const DiseaseDetectionFeature = ({ selectedCrop }) => {
   const [inputMessage, setInputMessage] = useState('')
   const [isLoadingChat, setIsLoadingChat] = useState(false)
 
-  // Load history from localStorage on component mount
-  useEffect(() => {
-    const savedHistory = localStorage.getItem(`diseaseHistory_${selectedCrop.id}`)
-    if (savedHistory) {
-      const parsedHistory = JSON.parse(savedHistory)
-      // Convert timestamp strings back to Date objects
-      const historyWithDates = parsedHistory.map(item => ({
-        ...item,
-        timestamp: new Date(item.timestamp)
-      }))
-      setDiseaseHistory(historyWithDates)
-    }
-  }, [selectedCrop.id])
 
-  // Save history to localStorage whenever it changes
-  useEffect(() => {
-    if (diseaseHistory.length > 0) {
-      localStorage.setItem(`diseaseHistory_${selectedCrop.id}`, JSON.stringify(diseaseHistory))
-    }
-  }, [diseaseHistory, selectedCrop.id])
 
-  const deletePrediction = (predictionId) => {
-    const updatedHistory = diseaseHistory.filter(item => item.id !== predictionId)
-    setDiseaseHistory(updatedHistory)
-    
-    // Update localStorage
-    if (updatedHistory.length === 0) {
-      localStorage.removeItem(`diseaseHistory_${selectedCrop.id}`)
-    } else {
-      localStorage.setItem(`diseaseHistory_${selectedCrop.id}`, JSON.stringify(updatedHistory))
-    }
-    
-    // If deleted item was currently selected, go back to history
-    if (currentPrediction && currentPrediction.id === predictionId) {
-      setCurrentPrediction(null)
-      setDiseaseView('history')
+  const handleDeleteDetection = async (detectionId) => {
+    try {
+      const response = await api.deleteDiseaseDetection(detectionId)
+      if (response.ok) {
+        // Reload data from backend
+        await loadCropData(selectedCrop.id)
+        
+        // If deleted item was currently selected, go back to history
+        if (currentPrediction && currentPrediction.id === detectionId) {
+          setCurrentPrediction(null)
+          setDiseaseView('history')
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting detection:', error)
     }
   }
 
@@ -83,7 +63,8 @@ const DiseaseDetectionFeature = ({ selectedCrop }) => {
           const result = await response.json()
           
           const prediction = {
-            id: Date.now(),
+            id: result.detection_id,
+            detection_id: result.detection_id,
             image: e.target.result,
             disease: result.disease,
             cause: result.cause,
@@ -95,15 +76,14 @@ const DiseaseDetectionFeature = ({ selectedCrop }) => {
           }
           
           setCurrentPrediction(prediction)
-          setDiseaseHistory(prev => [prediction, ...prev])
+          await loadCropData(selectedCrop.id)
           setIsAnalyzing(false)
           
           // Initialize chat with AI-generated welcome message
           try {
             const welcomeResponse = await api.chatAboutDisease(
-              prediction.disease,
-              selectedCrop.id,
-              `I just analyzed an image and detected ${prediction.disease}. Please provide a welcome message and brief explanation.`
+              result.detection_id,
+              `I just analyzed an image and detected ${result.disease}. Please provide a welcome message and brief explanation.`
             )
             
             if (welcomeResponse.ok) {
@@ -145,11 +125,16 @@ const DiseaseDetectionFeature = ({ selectedCrop }) => {
     // Get AI welcome message for returning to this prediction
     const getWelcomeMessage = async () => {
       try {
-        const response = await api.chatAboutDisease(
-          prediction.disease,
-          selectedCrop.id,
-          `Welcome the user back to discuss ${prediction.disease} that was previously detected.`
-        )
+        const chatHistoryResponse = await api.getDiseaseChatHistory(prediction.detection_id || prediction.id)
+        if (chatHistoryResponse.ok) {
+          const chatData = await chatHistoryResponse.json()
+          const messages = []
+          chatData.chat_history.forEach(chat => {
+            messages.push({ id: `user-${chat.id}`, type: 'user', content: chat.message, timestamp: new Date(chat.created_at) })
+            messages.push({ id: `bot-${chat.id}`, type: 'bot', content: chat.response, timestamp: new Date(chat.created_at) })
+          })
+          setChatMessages(messages)
+        }
         
         if (response.ok) {
           const result = await response.json()
@@ -191,8 +176,7 @@ const DiseaseDetectionFeature = ({ selectedCrop }) => {
 
     try {
       const response = await api.chatAboutDisease(
-        currentPrediction.disease,
-        selectedCrop.id,
+        currentPrediction.detection_id || currentPrediction.id,
         messageToSend
       )
       
@@ -259,18 +243,15 @@ const DiseaseDetectionFeature = ({ selectedCrop }) => {
                   className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-center space-x-4">
-                    <img
-                      src={prediction.image}
-                      alt="Crop analysis"
-                      className="w-16 h-16 object-cover rounded-lg cursor-pointer"
-                      onClick={() => selectPrediction(prediction)}
-                    />
+                    <div className="w-16 h-16 bg-red-100 rounded-lg flex items-center justify-center">
+                      <Camera className="h-8 w-8 text-red-600" />
+                    </div>
                     <div className="flex-1 cursor-pointer" onClick={() => selectPrediction(prediction)}>
                       <p className="font-semibold text-gray-900">
                         Result: {prediction.disease}
                       </p>
                       <p className="text-sm text-gray-600">
-                        {prediction.cause}
+                        Severity: {prediction.severity}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
                         {prediction.timestamp.toLocaleDateString()} at {prediction.timestamp.toLocaleTimeString()}
@@ -281,14 +262,15 @@ const DiseaseDetectionFeature = ({ selectedCrop }) => {
                         <span className="text-sm font-medium text-blue-600">
                           {prediction.confidence}% confidence
                         </span>
+                        <p className="text-xs text-gray-500 mt-1">Click to chat</p>
                       </div>
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          deletePrediction(prediction.id)
+                          handleDeleteDetection(prediction.id)
                         }}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Delete analysis"
+                        title="Delete detection"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>

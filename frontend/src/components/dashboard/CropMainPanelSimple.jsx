@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Sprout, ChevronLeft, ChevronRight, MessageSquare, Camera, Cloud, TrendingUp, FileText, Send, Bot, User } from 'lucide-react'
 import DiseaseDetectionFeature from './DiseaseDetectionFeature'
 import WeatherFeature from './WeatherFeature'
@@ -20,6 +20,64 @@ const CropMainPanelSimple = ({ selectedCrop }) => {
   const [showPrecautions, setShowPrecautions] = useState(false)
   const [showTreatment, setShowTreatment] = useState(false)
   const [diseaseView, setDiseaseView] = useState('history') // 'history', 'upload', 'result'
+  
+  // Load crop-specific data when crop changes
+  useEffect(() => {
+    if (selectedCrop) {
+      loadCropData(selectedCrop.id)
+    } else {
+      clearAllData()
+    }
+  }, [selectedCrop])
+
+  const loadCropData = async (cropId) => {
+    try {
+      // Clear existing data first
+      setMessages([])
+      setDiseaseHistory([])
+      
+      // Load chat history
+      const chatResponse = await api.getCropChatHistory(cropId)
+      if (chatResponse.ok) {
+        const chatData = await chatResponse.json()
+        const chatMessages = []
+        chatData.chat_history.forEach(conv => {
+          chatMessages.push({ id: `user-${conv.id}`, type: 'user', content: conv.message, timestamp: new Date(conv.created_at) })
+          chatMessages.push({ id: `bot-${conv.id}`, type: 'bot', content: conv.response, timestamp: new Date(conv.created_at) })
+        })
+        setMessages(chatMessages)
+      }
+
+      // Load disease history
+      const diseaseResponse = await api.getDiseaseHistory(cropId)
+      if (diseaseResponse.ok) {
+        const diseaseData = await diseaseResponse.json()
+        const formattedHistory = diseaseData.detections.map(detection => ({
+          id: detection.id,
+          detection_id: detection.id,
+          disease: detection.disease_name,
+          confidence: detection.confidence,
+          severity: detection.severity,
+          timestamp: new Date(detection.detected_at),
+          cause: 'detected via AI analysis',
+          precautions: ['Monitor plant health', 'Maintain proper care'],
+          treatment: ['Consult expert', 'Apply recommended treatment']
+        }))
+        setDiseaseHistory(formattedHistory)
+      }
+    } catch (error) {
+      console.error('Error loading crop data:', error)
+    }
+  }
+
+  const clearAllData = () => {
+    setMessages([])
+    setDiseaseHistory([])
+    setCurrentPrediction(null)
+    setDiseaseView('history')
+    setShowPrecautions(false)
+    setShowTreatment(false)
+  }
 
   // Initialize chat when chatbot is selected
   const initializeChat = () => {
@@ -98,7 +156,7 @@ const CropMainPanelSimple = ({ selectedCrop }) => {
         setDiseaseView('result')
         
         // Simulate AI analysis
-        setTimeout(() => {
+        setTimeout(async () => {
           const prediction = {
             id: Date.now(),
             image: e.target.result,
@@ -120,7 +178,8 @@ const CropMainPanelSimple = ({ selectedCrop }) => {
             ]
           }
           setCurrentPrediction(prediction)
-          setDiseaseHistory(prev => [prediction, ...prev])
+          // Reload disease history from backend
+          await loadCropData(selectedCrop.id)
           setIsAnalyzing(false)
         }, 3000)
       }
@@ -339,7 +398,12 @@ const CropMainPanelSimple = ({ selectedCrop }) => {
                 </div>
               </div>
             ) : activeFeature === 'disease' ? (
-              <DiseaseDetectionFeature selectedCrop={selectedCrop} />
+              <DiseaseDetectionFeature 
+                selectedCrop={selectedCrop} 
+                diseaseHistory={diseaseHistory}
+                setDiseaseHistory={setDiseaseHistory}
+                loadCropData={loadCropData}
+              />
             ) : activeFeature === 'weather' ? (
               <WeatherFeature selectedCrop={selectedCrop} />
             ) : activeFeature === 'activity' ? (

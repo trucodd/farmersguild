@@ -1,8 +1,10 @@
 from langchain_openai import ChatOpenAI
-from langchain.prompts import ChatPromptTemplate
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain.memory import ConversationBufferMemory
 from langchain_core.output_parsers import StrOutputParser
 from sqlalchemy.orm import Session
-from ..services.crop_context import CropContextService
+from models import Crop
+from ..memory.disease_memory import DiseaseChatMessageHistory
 import os
 import json
 
@@ -20,17 +22,13 @@ class DiseaseDetectionChain:
             max_tokens=100
         )
         
-        self.context_service = CropContextService(db)
-        
-        # Get crop context
-        self.crop_context = self.context_service.get_crop_context(crop_id)
-        self.crop_name = self.crop_context.get('name', 'Unknown Crop')
+        # Get crop name directly without complex context
+        crop = db.query(Crop).filter(Crop.id == crop_id).first()
+        self.crop_name = crop.name if crop else 'Unknown Crop'
         
         # Create analysis prompt
         self.analysis_prompt = ChatPromptTemplate.from_messages([
 ("system", """You are a plant pathologist. Analyze {crop_name} images for diseases.
-            
-            Crop Context: {crop_context}
             
             Respond in JSON format with very short, human-like answers:
             {{
@@ -49,18 +47,16 @@ class DiseaseDetectionChain:
             ])
         ])
         
-        # Create chat prompt for follow-up questions
+        # Create chat prompt for follow-up questions with memory
         self.chat_prompt = ChatPromptTemplate.from_messages([
 ("system", """You are a plant pathologist expert on {crop_name}.
             
-            Crop Context: {crop_context}
-            Analysis Context: {disease_context}
-            
-            The user has a {crop_name} plant with analysis result: {disease_name}.
+            The user has a {crop_name} plant with detected disease: {disease_name}.
             
             IMPORTANT: Keep responses very short - maximum 2-3 sentences. Be direct and concise.
             
             Answer briefly and to the point. No long explanations."""),
+            MessagesPlaceholder(variable_name="messages"),
             ("human", "{message}")
         ])
         
@@ -71,11 +67,8 @@ class DiseaseDetectionChain:
     def analyze_disease(self, image_base64: str) -> dict:
         """Analyze crop image for disease detection"""
         try:
-            formatted_context = self.context_service.format_context_for_ai(self.crop_context)
-            
             response = self.analysis_chain.invoke({
                 "crop_name": self.crop_name,
-                "crop_context": formatted_context,
                 "image_data": image_base64
             })
             
@@ -103,19 +96,34 @@ class DiseaseDetectionChain:
                 "treatment": ["Fungicide spray", "Remove infected parts"]
             }
     
-    def chat_about_disease(self, disease_name: str, disease_context: dict, message: str) -> str:
-        """Chat about a specific detected disease"""
+    def chat_about_disease(self, disease_name: str, detection_id: int, message: str) -> str:
+        """Chat about a specific detected disease with conversation memory"""
         try:
-            formatted_context = self.context_service.format_context_for_ai(self.crop_context)
-            formatted_disease_context = json.dumps(disease_context, indent=2)
+            # Create memory for this specific detection
+            chat_history = DiseaseChatMessageHistory(detection_id, self.db)
+            memory = ConversationBufferMemory(
+                chat_memory=chat_history,
+                memory_key="messages",
+                return_messages=True
+            )
+            
+            # Store user message
+            if hasattr(memory.chat_memory, 'add_user_message'):
+                memory.chat_memory.add_user_message(message)
+            
+            # Get conversation history
+            messages = memory.chat_memory.messages
             
             response = self.chat_chain.invoke({
                 "crop_name": self.crop_name,
-                "crop_context": formatted_context,
                 "disease_name": disease_name,
-                "disease_context": formatted_disease_context,
-                "message": message
+                "message": message,
+                "messages": messages
             })
+            
+            # Store AI response
+            if hasattr(memory.chat_memory, 'add_ai_message'):
+                memory.chat_memory.add_ai_message(response)
             
             return response
             

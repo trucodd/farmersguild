@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Send, Bot, User } from 'lucide-react'
+import MarkdownRenderer from '../ui/MarkdownRenderer'
 
 const ChatbotFeature = ({ crop }) => {
   const [messages, setMessages] = useState([])
@@ -124,7 +125,11 @@ const ChatbotFeature = ({ crop }) => {
                   ? 'bg-blue-600 text-white' 
                   : 'bg-gray-100 text-gray-900'
               }`}>
-                <p className="text-sm">{message.content}</p>
+                {message.type === 'user' ? (
+                  <p className="text-sm">{message.content}</p>
+                ) : (
+                  <MarkdownRenderer content={message.content} />
+                )}
               </div>
             </div>
           </div>

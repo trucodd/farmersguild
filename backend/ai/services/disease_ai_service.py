@@ -23,12 +23,16 @@ class DiseaseAIService:
         
         return result
     
-    async def chat_about_disease(self, disease_name: str, crop_id: int, message: str, db: Session) -> str:
+    async def chat_about_disease(self, disease_name: str, detection_id: int, message: str, db: Session) -> str:
         """Chat about a specific disease"""
-        chain = self.get_disease_chain(crop_id, db)
-        disease_context = self.disease_contexts.get(crop_id, {})
+        # Get crop_id from detection_id
+        from models import DiseaseDetection
+        detection = db.query(DiseaseDetection).filter(DiseaseDetection.id == detection_id).first()
+        if not detection:
+            raise ValueError("Detection not found")
         
-        return chain.chat_about_disease(disease_name, disease_context, message)
+        chain = self.get_disease_chain(detection.crop_id, db)
+        return chain.chat_about_disease(disease_name, detection_id, message)
     
     def clear_disease_chain(self, crop_id: int):
         """Clear cached chain for crop"""

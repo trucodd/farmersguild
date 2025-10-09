@@ -19,7 +19,8 @@ class CropChatChain:
             model="deepseek/deepseek-chat-v3.1:free",
             temperature=0.7,
             api_key=os.getenv("OPENROUTER_API_KEY"),
-            base_url="https://openrouter.ai/api/v1"
+            base_url="https://openrouter.ai/api/v1",
+            max_tokens=150
         )
         
         self.context_service = CropContextService(db)

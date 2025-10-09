@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = '/api';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
@@ -21,14 +21,14 @@ export const api = {
 
   // Crop endpoints
   getCrops: async () => {
-    const response = await fetch(`${API_BASE_URL}/crops`, {
+    const response = await fetch(`${API_BASE_URL}/crops/`, {
       headers: getAuthHeaders()
     });
     return response;
   },
 
   createCrop: async (cropData) => {
-    const response = await fetch(`${API_BASE_URL}/crops`, {
+    const response = await fetch(`${API_BASE_URL}/crops/`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(cropData)
@@ -62,6 +62,77 @@ export const api = {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({ message })
+    });
+    return response;
+  },
+
+  // Disease detection endpoints
+  analyzeDisease: async (imageBase64, cropId) => {
+    const response = await fetch(`${API_BASE_URL}/disease/analyze`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ image_base64: imageBase64, crop_id: cropId })
+    });
+    return response;
+  },
+
+  chatAboutDisease: async (detectionId, message) => {
+    const response = await fetch(`${API_BASE_URL}/disease/chat`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ detection_id: detectionId, message })
+    });
+    return response;
+  },
+
+  getDiseaseHistory: async (cropId) => {
+    const response = await fetch(`${API_BASE_URL}/disease/history/${cropId}`, {
+      headers: getAuthHeaders()
+    });
+    return response;
+  },
+
+  getDiseaseChatHistory: async (detectionId) => {
+    const response = await fetch(`${API_BASE_URL}/disease/chat-history/${detectionId}`, {
+      headers: getAuthHeaders()
+    });
+    return response;
+  },
+
+  getCropChatHistory: async (cropId) => {
+    const response = await fetch(`${API_BASE_URL}/crop-data/chat-history/${cropId}`, {
+      headers: getAuthHeaders()
+    });
+    return response;
+  },
+
+  getCropActivityLogs: async (cropId) => {
+    const response = await fetch(`${API_BASE_URL}/crop-data/activity-logs/${cropId}`, {
+      headers: getAuthHeaders()
+    });
+    return response;
+  },
+
+  addActivityLog: async (cropId, activityData) => {
+    const response = await fetch(`${API_BASE_URL}/crops/${cropId}/activity`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(activityData)
+    });
+    return response;
+  },
+
+  getCropCosts: async (cropId) => {
+    const response = await fetch(`${API_BASE_URL}/crop-data/costs/${cropId}`, {
+      headers: getAuthHeaders()
+    });
+    return response;
+  },
+
+  deleteDiseaseDetection: async (detectionId) => {
+    const response = await fetch(`${API_BASE_URL}/disease/detection/${detectionId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
     });
     return response;
   }

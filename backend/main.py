@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine
 from models import Base
-from routers import auth, users, chat, market, crops, commodities, marketplace, labor, crop_ai, costs, weather, crop_details
+from routers import auth, users, chat, market, crops, commodities, marketplace, labor, crop_ai, costs, weather, crop_details, disease_detection, crop_data, activity_logs
 import redis
 import os
 from dotenv import load_dotenv
@@ -40,6 +40,9 @@ app.include_router(crop_ai.router)
 app.include_router(crop_details.router, prefix="/api/crops", tags=["crop-details"])
 app.include_router(costs.router, prefix="/api/costs", tags=["costs"])
 app.include_router(weather.router, prefix="/api/weather", tags=["weather"])
+app.include_router(disease_detection.router, prefix="/api/disease", tags=["disease-detection"])
+app.include_router(crop_data.router, prefix="/api/crop-data", tags=["crop-data"])
+app.include_router(activity_logs.router, prefix="/api/crops", tags=["activity-logs"])
 
 @app.get("/")
 async def root():
