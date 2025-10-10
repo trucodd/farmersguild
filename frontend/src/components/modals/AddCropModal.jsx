@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { X, Calendar, Search, MapPin } from 'lucide-react'
+import { X, Calendar, Search, MapPin, Sprout, ArrowLeft } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { fetchCommodities } from '../../utils/commodities'
 
 const AddCropModal = ({ isOpen, onClose, onSave }) => {
@@ -148,84 +149,119 @@ const AddCropModal = ({ isOpen, onClose, onSave }) => {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-gradient-to-br from-accent-meadow/20 via-accent-sage/20 to-accent-olive/20 backdrop-blur-md flex items-center justify-center z-50 p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="bg-white/95 backdrop-blur-xl border border-accent-meadow/30 rounded-xl p-6 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+        <style jsx>{`
+          div::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+      >
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="text-xl font-semibold text-gray-900">
-              {step === 1 ? 'Select Crop Type' : 'Add Crop Details'}
-            </h3>
-            {step === 2 && (
-              <p className="text-sm text-gray-600 mt-1">Selected: {selectedCommodity}</p>
-            )}
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-accent-meadow/20 rounded-lg flex items-center justify-center">
+              <Sprout className="h-5 w-5 text-accent-meadow" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-text-primary">
+                {step === 1 ? 'Select Crop Type' : 'Add Crop Details'}
+              </h3>
+              {step === 2 && (
+                <p className="text-sm text-text-secondary mt-1">Selected: {selectedCommodity}</p>
+              )}
+            </div>
           </div>
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-2 text-text-secondary hover:text-text-primary hover:bg-white/10 rounded-lg transition-colors"
           >
-            <X className="h-6 w-6" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Step 1: Commodity Selection */}
         {step === 1 && (
-          <div className="space-y-4">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="space-y-6"
+          >
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-4 top-4 h-4 w-4 text-text-secondary" />
               <input
                 type="text"
                 placeholder="Search crops..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full pl-12 pr-4 py-3 glass-card border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-meadow text-text-primary placeholder-text-secondary"
               />
             </div>
 
             {/* Commodity List */}
-            <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
+            <div className="bg-white border border-accent-meadow/30 rounded-lg" style={{height: '300px', overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+              <style jsx>{`
+                div::-webkit-scrollbar {
+                  display: none;
+                }
+              `}</style>
               {loading ? (
-                <div className="p-8 text-center text-gray-500">
+                <div className="p-8 text-center text-text-secondary">
+                  <div className="animate-spin w-6 h-6 border-2 border-accent-meadow border-t-transparent rounded-full mx-auto mb-2"></div>
                   Loading commodities...
                 </div>
               ) : filteredCommodities.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">
+                <div className="p-8 text-center text-text-secondary">
+                  <Sprout className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   No commodities found
                 </div>
               ) : (
-                <div className="divide-y divide-gray-200">
+                <div className="divide-y divide-gray-100">
                   {filteredCommodities.map((commodity, index) => (
-                    <button
+                    <motion.button
                       key={index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.05 * index }}
                       onClick={() => handleCommoditySelect(commodity)}
-                      className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors focus:outline-none focus:bg-green-50"
+                      className="w-full px-4 py-3 text-left hover:bg-accent-meadow/10 hover:border-l-4 hover:border-l-accent-meadow transition-all focus:outline-none focus:bg-accent-meadow/20 group"
                     >
-                      <span className="text-gray-900">{commodity}</span>
-                    </button>
+                      <div className="flex items-center justify-between">
+                        <span className="text-text-primary group-hover:text-accent-meadow transition-colors">{commodity}</span>
+                        <ArrowLeft className="h-4 w-4 text-accent-sage group-hover:text-accent-meadow transition-colors rotate-180" />
+                      </div>
+                    </motion.button>
                   ))}
                 </div>
               )}
             </div>
 
             {/* Cancel Button */}
-            <div className="pt-4">
-              <button
-                onClick={handleClose}
-                className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
+            <button
+              onClick={handleClose}
+              className="w-full px-4 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
+            >
+              Cancel
+            </button>
+          </motion.div>
         )}
 
         {/* Step 2: Crop Details Form */}
         {step === 2 && (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <motion.form
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            onSubmit={handleSubmit}
+            className="space-y-4"
+          >
             {/* Variety */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 Variety (Optional)
               </label>
               <input
@@ -234,15 +270,15 @@ const AddCropModal = ({ isOpen, onClose, onSave }) => {
                 value={formData.variety}
                 onChange={handleChange}
                 placeholder="e.g., HD-2967, Basmati, BT Cotton"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-4 py-3 glass-card border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-meadow text-text-primary placeholder-text-secondary"
               />
             </div>
 
             {/* Location */}
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2 mb-2">
-                <MapPin className="h-4 w-4 text-gray-500" />
-                <label className="text-sm font-medium text-gray-700">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-4 w-4 text-accent-meadow" />
+                <label className="text-sm font-medium text-text-primary">
                   Location
                 </label>
               </div>
@@ -254,7 +290,7 @@ const AddCropModal = ({ isOpen, onClose, onSave }) => {
                       name="state"
                       value={formData.state}
                       onChange={(e) => setFormData({...formData, state: e.target.value, district: ''})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      className="w-full px-4 py-3 glass-card border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-meadow text-text-primary"
                     >
                       <option value="">Select State</option>
                       {states.map(state => (
@@ -268,7 +304,7 @@ const AddCropModal = ({ isOpen, onClose, onSave }) => {
                       name="district"
                       value={formData.district}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      className="w-full px-4 py-3 glass-card border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-meadow text-text-primary disabled:opacity-50"
                       disabled={!formData.state}
                     >
                       <option value="">Select District</option>
@@ -283,7 +319,7 @@ const AddCropModal = ({ isOpen, onClose, onSave }) => {
                 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">
+                    <label className="block text-xs text-text-secondary mb-1">
                       Specific Location (Optional)
                     </label>
                     <input
@@ -292,11 +328,11 @@ const AddCropModal = ({ isOpen, onClose, onSave }) => {
                       value={formData.location}
                       onChange={handleChange}
                       placeholder="Village/town/area"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                      className="w-full px-4 py-3 glass-card border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-meadow text-text-primary placeholder-text-secondary text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">
+                    <label className="block text-xs text-text-secondary mb-1">
                       Zipcode (For Weather)
                     </label>
                     <input
@@ -305,7 +341,7 @@ const AddCropModal = ({ isOpen, onClose, onSave }) => {
                       value={formData.zipcode}
                       onChange={handleChange}
                       placeholder="e.g., 500001"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                      className="w-full px-4 py-3 glass-card border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-meadow text-text-primary placeholder-text-secondary text-sm"
                     />
                   </div>
                 </div>
@@ -314,7 +350,7 @@ const AddCropModal = ({ isOpen, onClose, onSave }) => {
 
             {/* Area */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 Area (Optional)
               </label>
               <input
@@ -323,14 +359,15 @@ const AddCropModal = ({ isOpen, onClose, onSave }) => {
                 value={formData.area}
                 onChange={handleChange}
                 placeholder="e.g., 2 acres, 1 hectare"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-4 py-3 glass-card border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-meadow text-text-primary placeholder-text-secondary"
               />
             </div>
 
             {/* Dates */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-text-primary mb-2">
+                  <Calendar className="h-4 w-4 inline mr-1" />
                   Planting Date *
                 </label>
                 <input
@@ -338,12 +375,13 @@ const AddCropModal = ({ isOpen, onClose, onSave }) => {
                   name="planting_date"
                   value={formData.planting_date}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-3 glass-card border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-meadow text-text-primary"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-text-primary mb-2">
+                  <Calendar className="h-4 w-4 inline mr-1" />
                   Expected Harvest
                 </label>
                 <input
@@ -351,14 +389,14 @@ const AddCropModal = ({ isOpen, onClose, onSave }) => {
                   name="harvest_date"
                   value={formData.harvest_date}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-3 glass-card border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-meadow text-text-primary"
                 />
               </div>
             </div>
 
             {/* Notes */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 Notes (Optional)
               </label>
               <textarea
@@ -367,29 +405,31 @@ const AddCropModal = ({ isOpen, onClose, onSave }) => {
                 onChange={handleChange}
                 rows={3}
                 placeholder="Additional notes about this crop..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                className="w-full px-4 py-3 glass-card border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-meadow text-text-primary placeholder-text-secondary resize-none"
               />
             </div>
 
             {/* Buttons */}
-            <div className="flex space-x-3 pt-4">
+            <div className="flex space-x-3 pt-6">
               <button
                 type="button"
                 onClick={handleBack}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex-1 px-4 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center space-x-2 font-medium"
               >
-                Back
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back</span>
               </button>
               <button
                 type="submit"
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="flex-1 px-4 py-3 bg-accent-meadow text-white rounded-lg hover:bg-accent-meadow/80 transition-colors font-medium flex items-center justify-center space-x-2"
               >
-                Save Crop
+                <Sprout className="h-4 w-4" />
+                <span>Save Crop</span>
               </button>
             </div>
-          </form>
+          </motion.form>
         )}
-      </div>
+      </motion.div>
     </div>
   )
 }

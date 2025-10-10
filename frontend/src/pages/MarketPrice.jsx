@@ -181,20 +181,20 @@ const MarketPrice = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-accent-meadow/10 via-accent-sage/10 to-accent-olive/10 py-8">
       <div className="max-w-7xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Market Prices & AI Insights</h1>
+        <h1 className="text-3xl font-bold text-text-primary mb-8">MARKET PRICES & AI INSIGHTS</h1>
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left Panel - Market Selection */}
           <div className="lg:col-span-1 space-y-6">
             {/* Market Selection */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold mb-4">Select Markets</h3>
+            <div className="glass-card rounded-xl border border-white/20 p-6">
+              <h3 className="text-lg font-bold text-text-primary mb-4">SELECT MARKETS</h3>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
+                  <label className="block text-sm font-medium text-text-primary mb-2">State</label>
                   <select
                     value={selectedState}
                     onChange={(e) => {
@@ -205,7 +205,7 @@ const MarketPrice = () => {
                       }
                     }}
                     disabled={loadingStates}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 disabled:opacity-50"
+                    className="w-full p-3 glass-card border border-white/20 rounded-lg focus:ring-2 focus:ring-accent-meadow disabled:opacity-50 text-text-primary"
                   >
                     <option value="">{loadingStates ? 'Loading states...' : 'Select State'}</option>
                     {states.map(state => (
@@ -215,7 +215,7 @@ const MarketPrice = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">District</label>
+                  <label className="block text-sm font-medium text-text-primary mb-2">District</label>
                   <select
                     onChange={(e) => {
                       const district = e.target.value;
@@ -225,7 +225,7 @@ const MarketPrice = () => {
                       }
                     }}
                     disabled={!selectedState}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 disabled:opacity-50"
+                    className="w-full p-3 glass-card border border-white/20 rounded-lg focus:ring-2 focus:ring-accent-meadow disabled:opacity-50 text-text-primary"
                   >
                     <option value="">
                       {!selectedState ? 'Select State First' : 
@@ -243,14 +243,14 @@ const MarketPrice = () => {
 
               {/* Selected Markets */}
               <div className="mt-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Selected Markets:</h4>
+                <h4 className="text-sm font-medium text-text-primary mb-2">Selected Markets:</h4>
                 {selectedMarkets.length === 0 ? (
-                  <p className="text-sm text-gray-500">No markets selected</p>
+                  <p className="text-sm text-text-secondary">No markets selected</p>
                 ) : (
                   <div className="space-y-2">
                     {selectedMarkets.map((market, index) => (
-                      <div key={index} className="flex items-center justify-between bg-green-50 p-2 rounded">
-                        <span className="text-sm">{market.district}, {market.state}</span>
+                      <div key={index} className="flex items-center justify-between glass-card border border-white/10 p-3 rounded-lg">
+                        <span className="text-sm text-text-primary">{market.district}, {market.state}</span>
                         <button
                           onClick={() => removeMarket(index)}
                           className="text-red-500 hover:text-red-700"
@@ -265,13 +265,13 @@ const MarketPrice = () => {
             </div>
 
             {/* Crop Selection */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold mb-4">Select Your Crop</h3>
+            <div className="glass-card rounded-xl border border-white/20 p-6">
+              <h3 className="text-lg font-bold text-text-primary mb-4">SELECT YOUR CROP</h3>
               
               <select
                 value={selectedCrop}
                 onChange={(e) => setSelectedCrop(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                className="w-full p-3 glass-card border border-white/20 rounded-lg focus:ring-2 focus:ring-accent-meadow text-text-primary"
               >
                 <option value="">Select Crop</option>
                 {userCrops.map(crop => (
@@ -280,15 +280,15 @@ const MarketPrice = () => {
               </select>
               
               {userCrops.length === 0 && (
-                <p className="text-sm text-gray-500 mt-2">
+                <p className="text-sm text-text-secondary mt-2">
                   No crops found. Add crops in "My Crops" section first.
                 </p>
               )}
             </div>
 
             {/* Date Selection */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold mb-4">Select Date</h3>
+            <div className="glass-card rounded-xl border border-white/20 p-6">
+              <h3 className="text-lg font-bold text-text-primary mb-4">SELECT DATE</h3>
               
               <div className="grid grid-cols-2 gap-2">
                 {[
@@ -300,10 +300,10 @@ const MarketPrice = () => {
                   <button
                     key={key}
                     onClick={() => setSelectedDate(key)}
-                    className={`px-3 py-2 text-sm rounded-md border ${
+                    className={`px-3 py-2 text-sm rounded-lg border transition-all ${
                       selectedDate === key
-                        ? 'bg-green-600 text-white border-green-600'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                        ? 'bg-accent-meadow text-white border-accent-meadow'
+                        : 'glass-card text-text-primary border-white/20 hover:bg-white/10'
                     }`}
                   >
                     {label}
@@ -318,13 +318,13 @@ const MarketPrice = () => {
 
           {/* Right Panel - AI Insights */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="glass-card rounded-xl border border-white/20 p-6">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-semibold">AI Market Insights</h3>
+                <h3 className="text-lg font-bold text-text-primary">AI MARKET INSIGHTS</h3>
                 <button
                   onClick={fetchInsights}
                   disabled={loading || !selectedCrop || selectedMarkets.length === 0}
-                  className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                  className="flex items-center space-x-2 px-4 py-3 bg-accent-meadow text-white rounded-lg hover:bg-accent-meadow/80 disabled:opacity-50 transition-all"
                 >
                   <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                   <span>Get Insights</span>
@@ -333,23 +333,23 @@ const MarketPrice = () => {
 
               {!selectedCrop || selectedMarkets.length === 0 ? (
                 <div className="text-center py-12">
-                  <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-lg mb-2">Select markets and crop to get AI insights</p>
-                  <p className="text-gray-400 text-sm">
+                  <MapPin className="w-16 h-16 text-text-secondary mx-auto mb-4" />
+                  <p className="text-text-secondary text-lg mb-2">Select markets and crop to get AI insights</p>
+                  <p className="text-text-secondary text-sm opacity-75">
                     Choose one or more markets and select a crop from your profile
                   </p>
                 </div>
               ) : loading ? (
                 <div className="text-center py-12">
-                  <RefreshCw className="w-8 h-8 animate-spin text-green-600 mx-auto mb-4" />
-                  <p className="text-gray-600">Analyzing market data...</p>
+                  <RefreshCw className="w-8 h-8 animate-spin text-accent-meadow mx-auto mb-4" />
+                  <p className="text-text-secondary">Analyzing market data...</p>
                 </div>
               ) : error ? (
                 <div className="text-center py-12">
-                  <p className="text-red-600 mb-4">{error}</p>
+                  <p className="text-red-500 mb-4">{error}</p>
                   <button
                     onClick={fetchInsights}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    className="px-4 py-3 bg-accent-meadow text-white rounded-lg hover:bg-accent-meadow/80 transition-all"
                   >
                     Try Again
                   </button>
@@ -357,36 +357,36 @@ const MarketPrice = () => {
               ) : insights && insights.length > 0 ? (
                 <div className="space-y-6">
                   {insights.map((insight, index) => (
-                    <div key={index} className="border rounded-lg p-4">
+                    <div key={index} className="glass-card border border-white/10 rounded-xl p-6">
                       <div className="flex items-center justify-between mb-4">
-                        <h4 className="font-semibold text-lg">{selectedCrop} - {insight.market}</h4>
+                        <h4 className="font-bold text-lg text-text-primary">{selectedCrop} - {insight.market}</h4>
                       </div>
 
                       {/* AI Summary */}
-                      <div className="bg-blue-50 rounded-lg p-4 mb-4">
-                        <p className="text-gray-800">{insight.summary}</p>
+                      <div className="glass-card border border-white/10 rounded-lg p-4 mb-4">
+                        <p className="text-text-primary">{insight.summary?.replace(/<｜begin▁of▁sentence｜>/g, '').replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1').replace(/#{1,6}\s/g, '').replace(/`(.*?)`/g, '$1').replace(/\n\n+/g, '\n')}</p>
                       </div>
 
                       {/* Price Details */}
                       {insight.insights && Object.keys(insight.insights).length > 0 && (
                         <div className="grid md:grid-cols-2 gap-4">
                           {Object.entries(insight.insights).map(([crop, data]) => (
-                            <div key={crop} className="bg-gray-50 rounded-lg p-4">
+                            <div key={crop} className="glass-card border border-white/10 rounded-lg p-4">
                               <div className="flex items-center justify-between mb-2">
-                                <span className="font-medium">{crop}</span>
+                                <span className="font-semibold text-text-primary">{crop}</span>
                                 <div className="flex items-center space-x-2">
                                   {getTrendIcon(data.trend)}
-                                  <span className="text-sm text-gray-600">{data.trend}</span>
+                                  <span className="text-sm text-text-secondary">{data.trend}</span>
                                 </div>
                               </div>
                               <div className="space-y-1 text-sm">
                                 <div className="flex justify-between">
-                                  <span>Current:</span>
-                                  <span className="font-medium">₹{data.latest_price?.toFixed(0) || 0}</span>
+                                  <span className="text-text-secondary">Current:</span>
+                                  <span className="font-semibold text-text-primary">₹{data.latest_price?.toFixed(0) || 0}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span>Change:</span>
-                                  <span className={`font-medium ${(data.price_change || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  <span className="text-text-secondary">Change:</span>
+                                  <span className={`font-semibold ${(data.price_change || 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                                     {(data.price_change || 0) >= 0 ? '+' : ''}₹{(data.price_change || 0).toFixed(0)}
                                   </span>
                                 </div>
@@ -400,7 +400,7 @@ const MarketPrice = () => {
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <p className="text-gray-500">No market data available for {selectedCrop}</p>
+                  <p className="text-text-secondary">No market data available for {selectedCrop}</p>
                 </div>
               )}
             </div>

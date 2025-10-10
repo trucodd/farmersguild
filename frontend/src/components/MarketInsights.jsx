@@ -266,6 +266,9 @@ const MarketInsights = () => {
       {error && (
         <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
           <p className="text-red-600 text-sm">{error}</p>
+          <p className="text-xs text-gray-500 mt-1">
+            💡 Try selecting a different district or check if the crop is available in the selected market.
+          </p>
         </div>
       )}
       
@@ -273,12 +276,24 @@ const MarketInsights = () => {
       {insights && (
         <div className="mt-6">
           <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-gray-600 mb-2">
-              📍 {selectedDistrict}, {selectedState} • {selectedCrop}
-            </p>
-            <div className="text-gray-800 whitespace-pre-line">
-              {insights.summary || 'No market summary available'}
+            <div className="flex justify-between items-start mb-2">
+              <p className="text-sm text-gray-600">
+                📍 {selectedDistrict}, {selectedState} • {selectedCrop}
+              </p>
+              {insights.total_historical_records && (
+                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                  {insights.total_historical_records} records • {insights.data_quality} data
+                </span>
+              )}
             </div>
+            <div className="text-gray-800 whitespace-pre-line">
+              {(insights.summary || 'No market summary available').replace(/<｜begin▁of▁sentence｜>/g, '').replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1').replace(/#{1,6}\s/g, '').replace(/`(.*?)`/g, '$1').replace(/\n\n+/g, '\n')}
+            </div>
+            {insights.analysis_period && (
+              <p className="text-xs text-gray-500 mt-2">
+                📅 Analysis period: {insights.analysis_period.replace('_', ' ')}
+              </p>
+            )}
           </div>
 
           {insights.insights && Object.keys(insights.insights).length > 0 && (
@@ -298,23 +313,48 @@ const MarketInsights = () => {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-gray-600">Current: </span>
-                      <span className="font-medium">₹{data.latest_price?.toFixed(0) || 0}</span>
+                      <span className="font-medium">₹{Math.round(data.latest_price || 0)}</span>
+                      <span className="text-xs text-gray-500 ml-1">(₹{((data.latest_price || 0) / 100).toFixed(1)}/kg)</span>
                     </div>
                     <div>
                       <span className="text-gray-600">Change: </span>
                       <span className={`font-medium ${(data.price_change || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {(data.price_change || 0) >= 0 ? '+' : ''}₹{(data.price_change || 0).toFixed(0)}
+                        {(data.price_change || 0) >= 0 ? '+' : ''}₹{Math.round(data.price_change || 0)}
+                        {data.price_change && Math.abs(data.price_change) > 0 && (
+                          <span className="text-xs ml-1">
+                            ({((data.price_change / (data.latest_price - data.price_change)) * 100).toFixed(1)}%)
+                          </span>
+                        )}
                       </span>
                     </div>
                     <div>
                       <span className="text-gray-600">Average: </span>
-                      <span>₹{data.avg_price?.toFixed(0) || 0}</span>
+                      <span>₹{Math.round(data.avg_price || 0)}</span>
                     </div>
                     <div>
                       <span className="text-gray-600">Range: </span>
-                      <span>₹{data.min_price?.toFixed(0) || 0}-₹{data.max_price?.toFixed(0) || 0}</span>
+                      <span>₹{Math.round(data.min_price || 0)}-₹{Math.round(data.max_price || 0)}</span>
                     </div>
+                    {data.historical_data_available && (
+                      <div className="col-span-2 text-xs text-gray-500 mt-1">
+                        📊 Based on {data.historical_data_available} records • {data.market_confidence} confidence
+                      </div>
+                    )}
                   </div>
+                  {data.price_volatility && (
+                    <div className="mt-2 text-xs">
+                      <span className={`px-2 py-1 rounded ${
+                        data.price_volatility === 'high' ? 'bg-red-100 text-red-700' :
+                        data.price_volatility === 'moderate' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-green-100 text-green-700'
+                      }`}>
+                        {data.price_volatility} volatility
+                      </span>
+                      {data.practical_advice && (
+                        <span className="ml-2 text-gray-600">• {data.practical_advice}</span>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

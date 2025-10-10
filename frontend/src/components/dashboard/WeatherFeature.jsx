@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Cloud, Sun, CloudRain, Wind, Droplets, Thermometer, AlertTriangle, Shield, Eye } from 'lucide-react'
+import { Cloud, Sun, CloudRain, Wind, Droplets, Thermometer, AlertTriangle, Shield, Eye, MapPin, Calendar } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { fetchWeatherData, fetchForecastData } from '../../utils/weatherApi'
 
 const WeatherFeature = ({ selectedCrop }) => {
@@ -234,179 +235,263 @@ const WeatherFeature = ({ selectedCrop }) => {
 
   if (isLoading) {
     return (
-      <div className="w-full h-full flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-sky-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading weather data for {selectedCrop.location} {selectedCrop.zipcode && `(${selectedCrop.zipcode})`}...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-accent-meadow/10 via-accent-sage/10 to-accent-olive/10 flex items-center justify-center p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center glass-card p-8 rounded-xl border border-white/20"
+        >
+          <div className="animate-spin w-12 h-12 border-4 border-accent-meadow border-t-transparent rounded-full mx-auto mb-4"></div>
+          <h3 className="text-lg font-semibold text-text-primary mb-2">Loading Weather Data</h3>
+          <p className="text-text-secondary">Fetching forecast for {selectedCrop.location} {selectedCrop.zipcode && `(${selectedCrop.zipcode})`}...</p>
+        </motion.div>
       </div>
     )
   }
 
   return (
-    <div className="w-full h-full overflow-y-auto p-6 space-y-6">
-      {/* Weather Alerts - Top Priority */}
-      {weatherAlerts.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-            <AlertTriangle className="h-5 w-5 text-red-600" />
-            <span>Crop Risk Alerts</span>
-          </h3>
-          {weatherAlerts.map((alert) => {
-            const AlertIcon = alert.icon
-            return (
-              <div
-                key={alert.id}
-                className={`border-l-4 rounded-lg p-4 ${getAlertColor(alert.severity)}`}
-              >
-                <div className="flex items-start space-x-3">
-                  <AlertIcon className={`h-6 w-6 mt-1 ${getAlertIcon(alert.severity)}`} />
-                  <div className="flex-1">
-                    <h4 className="font-semibold mb-1">{alert.title}</h4>
-                    <p className="text-sm mb-2">{alert.message}</p>
-                    <div className="bg-white/50 rounded p-2 text-sm">
-                      <strong>Action Required:</strong> {alert.action}
+    <div className="min-h-screen bg-gradient-to-br from-accent-meadow/10 via-accent-sage/10 to-accent-olive/10 p-6">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-3xl font-bold text-text-primary mb-2">WEATHER FORECAST</h1>
+          <p className="text-text-secondary text-lg">Weather insights for {selectedCrop.name}</p>
+        </motion.div>
+        {/* Weather Alerts */}
+        {weatherAlerts.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="space-y-4"
+          >
+            <h3 className="text-xl font-semibold text-text-primary flex items-center space-x-2">
+              <AlertTriangle className="h-6 w-6 text-red-500" />
+              <span>Crop Risk Alerts</span>
+            </h3>
+            {weatherAlerts.map((alert, index) => {
+              const AlertIcon = alert.icon
+              return (
+                <motion.div
+                  key={alert.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 * index }}
+                  className={`glass-card border-l-4 rounded-xl p-6 ${
+                    alert.severity === 'high' ? 'border-l-red-500 bg-red-50/50' :
+                    alert.severity === 'medium' ? 'border-l-yellow-500 bg-yellow-50/50' :
+                    'border-l-blue-500 bg-blue-50/50'
+                  } border border-white/20`}
+                >
+                  <div className="flex items-start space-x-4">
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                      alert.severity === 'high' ? 'bg-red-100' :
+                      alert.severity === 'medium' ? 'bg-yellow-100' :
+                      'bg-blue-100'
+                    }`}>
+                      <AlertIcon className={`h-6 w-6 ${
+                        alert.severity === 'high' ? 'text-red-600' :
+                        alert.severity === 'medium' ? 'text-yellow-600' :
+                        'text-blue-600'
+                      }`} />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-text-primary mb-2">{alert.title}</h4>
+                      <p className="text-text-secondary mb-3">{alert.message}</p>
+                      <div className="glass-card p-3 rounded-lg border border-white/10">
+                        <p className="text-sm text-text-primary"><strong>Action Required:</strong> {alert.action}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
+                </motion.div>
+              )
+            })}
+          </motion.div>
+        )}
 
-      {/* Current Weather */}
-      <div className="bg-gradient-to-br from-sky-400 to-blue-600 text-white rounded-xl p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">Current Weather</h2>
-            <p className="text-sky-100 mb-4">{currentWeather.location} {selectedCrop.zipcode && `(${selectedCrop.zipcode})`}</p>
-            <div className="flex items-center space-x-4">
-              <div className="text-4xl font-bold">{currentWeather.temperature}°C</div>
+        {/* Current Weather */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="relative overflow-hidden rounded-xl p-6 bg-gradient-to-br from-accent-meadow/20 via-accent-sage/15 to-accent-olive/20 backdrop-blur-md border border-white/30 shadow-xl"
+        >
+          <div className="absolute inset-0 bg-black/5"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-accent-meadow/10 rounded-full blur-3xl"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <currentWeather.icon className="h-12 w-12 mb-2" />
-                <p className="text-sky-100">{currentWeather.condition}</p>
+                <h2 className="text-2xl font-bold text-text-primary mb-2">CURRENT WEATHER</h2>
+                <div className="flex items-center space-x-2 text-text-secondary">
+                  <MapPin className="h-4 w-4" />
+                  <span>{currentWeather.location} {selectedCrop.zipcode && `(${selectedCrop.zipcode})`}</span>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-4xl font-bold text-accent-meadow mb-1">{currentWeather.temperature}°C</div>
+                <p className="text-text-secondary capitalize">{currentWeather.condition}</p>
               </div>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4 text-center">
-            <div className="bg-white/20 rounded-lg p-3">
-              <Droplets className="h-6 w-6 mx-auto mb-1" />
-              <p className="text-sm">Humidity</p>
-              <p className="font-semibold">{currentWeather.humidity}%</p>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="glass-card p-4 rounded-lg border border-white/10 text-center">
+                <Droplets className="h-6 w-6 text-accent-meadow mx-auto mb-2" />
+                <p className="text-sm text-text-secondary mb-1">Humidity</p>
+                <p className="font-bold text-text-primary">{currentWeather.humidity}%</p>
+              </div>
+              <div className="glass-card p-4 rounded-lg border border-white/10 text-center">
+                <Wind className="h-6 w-6 text-accent-meadow mx-auto mb-2" />
+                <p className="text-sm text-text-secondary mb-1">Wind Speed</p>
+                <p className="font-bold text-text-primary">{currentWeather.windSpeed} km/h</p>
+              </div>
+              <div className="glass-card p-4 rounded-lg border border-white/10 text-center">
+                <Thermometer className="h-6 w-6 text-accent-meadow mx-auto mb-2" />
+                <p className="text-sm text-text-secondary mb-1">Pressure</p>
+                <p className="font-bold text-text-primary">{currentWeather.pressure} hPa</p>
+              </div>
+              <div className="glass-card p-4 rounded-lg border border-white/10 text-center">
+                <Eye className="h-6 w-6 text-accent-meadow mx-auto mb-2" />
+                <p className="text-sm text-text-secondary mb-1">UV Index</p>
+                <p className="font-bold text-text-primary">{currentWeather.uvIndex}</p>
+              </div>
             </div>
-            <div className="bg-white/20 rounded-lg p-3">
-              <Wind className="h-6 w-6 mx-auto mb-1" />
-              <p className="text-sm">Wind</p>
-              <p className="font-semibold">{currentWeather.windSpeed} km/h</p>
+            
+            <div className="mt-4 text-xs text-text-secondary flex items-center space-x-1">
+              <Calendar className="h-3 w-3" />
+              <span>Last updated: {new Date().toLocaleTimeString()}</span>
             </div>
           </div>
-        </div>
-        <div className="mt-4 text-xs text-sky-200">
-          Last updated: {new Date().toLocaleTimeString()}
-        </div>
-      </div>
+        </motion.div>
 
-      {/* 7-Day Forecast */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">7-Day Forecast</h3>
-        <div className="grid grid-cols-7 gap-4">
-          {forecast.map((day, index) => {
-            const Icon = day.icon
-            const isRisky = day.rain > 70 || day.high > 34 || day.humidity > 85
-            return (
-              <div 
-                key={index} 
-                className={`text-center p-3 rounded-lg transition-colors ${
-                  isRisky ? 'bg-red-50 border border-red-200' : 'hover:bg-gray-50'
-                }`}
-              >
-                <p className="text-sm font-medium text-gray-600 mb-2">{day.day}</p>
-                <Icon className={`h-8 w-8 mx-auto mb-2 ${
-                  isRisky ? 'text-red-600' : 'text-sky-600'
-                }`} />
-                <p className="text-xs text-gray-500 mb-2">{day.condition}</p>
-                <div className="space-y-1">
-                  <p className="text-sm font-semibold text-gray-900">{day.high}°</p>
-                  <p className="text-xs text-gray-500">{day.low}°</p>
-                  <p className={`text-xs ${day.rain > 50 ? 'text-red-600 font-semibold' : 'text-blue-600'}`}>
-                    {day.rain}%
-                  </p>
+        {/* 7-Day Forecast */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="glass-card rounded-xl border border-white/20 p-6"
+        >
+          <h3 className="text-xl font-bold text-text-primary mb-6">7-DAY FORECAST</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+            {forecast.map((day, index) => {
+              const Icon = day.icon
+              const isRisky = day.rain > 70 || day.high > 34 || day.humidity > 85
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 * index }}
+                  className={`text-center p-4 rounded-lg transition-all hover:scale-105 ${
+                    isRisky ? 'bg-red-50/50 border border-red-200' : 'glass-card border border-white/10 hover:bg-white/10'
+                  }`}
+                >
+                  <p className="text-sm font-semibold text-text-primary mb-3">{day.day}</p>
+                  <Icon className={`h-10 w-10 mx-auto mb-3 ${
+                    isRisky ? 'text-red-500' : 'text-accent-meadow'
+                  }`} />
+                  <p className="text-xs text-text-secondary mb-3 capitalize">{day.condition}</p>
+                  <div className="space-y-1">
+                    <p className="text-lg font-bold text-text-primary">{day.high}°</p>
+                    <p className="text-sm text-text-secondary">{day.low}°</p>
+                    <div className="flex items-center justify-center space-x-1">
+                      <Droplets className="h-3 w-3 text-blue-500" />
+                      <p className={`text-xs font-medium ${
+                        day.rain > 50 ? 'text-red-600' : 'text-blue-600'
+                      }`}>
+                        {day.rain}%
+                      </p>
+                    </div>
+                  </div>
+                  {isRisky && (
+                    <AlertTriangle className="h-4 w-4 text-red-500 mx-auto mt-2" />
+                  )}
+                </motion.div>
+              )
+            })}
+          </div>
+        </motion.div>
+
+        {/* Crop-Specific Recommendations */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="glass-card rounded-xl border border-white/20 p-6"
+        >
+          <h3 className="text-xl font-bold text-text-primary mb-6">
+            WEATHER IMPACT ON {selectedCrop.name.toUpperCase()}
+          </h3>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-semibold text-text-primary mb-4 flex items-center space-x-2">
+                <Eye className="h-5 w-5 text-accent-meadow" />
+                <span>Current Conditions</span>
+              </h4>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 glass-card rounded-lg border border-white/10">
+                  <span className="text-text-secondary">Temperature</span>
+                  <span className={`font-semibold flex items-center space-x-1 ${
+                    currentWeather.temperature > 30 ? 'text-red-500' : 'text-green-500'
+                  }`}>
+                    <span>{currentWeather.temperature > 30 ? '⚠' : '✓'}</span>
+                    <span>{currentWeather.temperature > 30 ? 'High' : 'Good'}</span>
+                  </span>
                 </div>
-                {isRisky && (
-                  <AlertTriangle className="h-3 w-3 text-red-600 mx-auto mt-1" />
+                <div className="flex items-center justify-between p-3 glass-card rounded-lg border border-white/10">
+                  <span className="text-text-secondary">Humidity</span>
+                  <span className={`font-semibold flex items-center space-x-1 ${
+                    currentWeather.humidity > 80 ? 'text-yellow-500' : 'text-green-500'
+                  }`}>
+                    <span>{currentWeather.humidity > 80 ? '⚠' : '✓'}</span>
+                    <span>{currentWeather.humidity > 80 ? 'High' : 'Normal'}</span>
+                  </span>
+                </div>
+                <div className="flex items-center justify-between p-3 glass-card rounded-lg border border-white/10">
+                  <span className="text-text-secondary">Wind Speed</span>
+                  <span className={`font-semibold flex items-center space-x-1 ${
+                    currentWeather.windSpeed > 20 ? 'text-yellow-500' : 'text-green-500'
+                  }`}>
+                    <span>{currentWeather.windSpeed > 20 ? '⚠' : '✓'}</span>
+                    <span>{currentWeather.windSpeed > 20 ? 'Strong' : 'Calm'}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-text-primary mb-4 flex items-center space-x-2">
+                <Shield className="h-5 w-5 text-accent-meadow" />
+                <span>Immediate Actions</span>
+              </h4>
+              <div className="space-y-3">
+                {currentWeather.humidity > 80 && (
+                  <div className="glass-card p-3 rounded-lg border border-yellow-200 bg-yellow-50/50">
+                    <p className="text-sm text-text-primary"><strong>High Humidity:</strong> Monitor for fungal diseases</p>
+                  </div>
+                )}
+                {currentWeather.temperature > 30 && (
+                  <div className="glass-card p-3 rounded-lg border border-red-200 bg-red-50/50">
+                    <p className="text-sm text-text-primary"><strong>Heat Stress:</strong> Increase irrigation frequency</p>
+                  </div>
+                )}
+                {currentWeather.windSpeed > 20 && (
+                  <div className="glass-card p-3 rounded-lg border border-blue-200 bg-blue-50/50">
+                    <p className="text-sm text-text-primary"><strong>Strong Winds:</strong> Check plant support structures</p>
+                  </div>
+                )}
+                {currentWeather.humidity <= 80 && currentWeather.temperature <= 30 && currentWeather.windSpeed <= 20 && (
+                  <div className="glass-card p-3 rounded-lg border border-green-200 bg-green-50/50">
+                    <p className="text-sm text-text-primary"><strong>Good Conditions:</strong> Ideal for normal farming activities</p>
+                  </div>
                 )}
               </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Crop-Specific Recommendations */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">
-          Weather Impact on {selectedCrop.name}
-        </h3>
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
-              <Eye className="h-4 w-4" />
-              <span>Current Conditions</span>
-            </h4>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Temperature</span>
-                <span className={`font-medium ${
-                  currentWeather.temperature > 30 ? 'text-red-600' : 'text-green-600'
-                }`}>
-                  {currentWeather.temperature > 30 ? '⚠ High' : '✓ Good'}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Humidity</span>
-                <span className={`font-medium ${
-                  currentWeather.humidity > 80 ? 'text-yellow-600' : 'text-green-600'
-                }`}>
-                  {currentWeather.humidity > 80 ? '⚠ High' : '✓ Normal'}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Wind Speed</span>
-                <span className={`font-medium ${
-                  currentWeather.windSpeed > 20 ? 'text-yellow-600' : 'text-green-600'
-                }`}>
-                  {currentWeather.windSpeed > 20 ? '⚠ Strong' : '✓ Calm'}
-                </span>
-              </div>
             </div>
           </div>
-
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-3">Immediate Actions</h4>
-            <div className="space-y-2">
-              {currentWeather.humidity > 80 && (
-                <div className="text-sm bg-yellow-50 border border-yellow-200 rounded p-2">
-                  <strong>High Humidity:</strong> Monitor for fungal diseases
-                </div>
-              )}
-              {currentWeather.temperature > 30 && (
-                <div className="text-sm bg-red-50 border border-red-200 rounded p-2">
-                  <strong>Heat Stress:</strong> Increase irrigation frequency
-                </div>
-              )}
-              {currentWeather.windSpeed > 20 && (
-                <div className="text-sm bg-blue-50 border border-blue-200 rounded p-2">
-                  <strong>Strong Winds:</strong> Check plant support structures
-                </div>
-              )}
-              {currentWeather.humidity <= 80 && currentWeather.temperature <= 30 && currentWeather.windSpeed <= 20 && (
-                <div className="text-sm bg-green-50 border border-green-200 rounded p-2">
-                  <strong>Good Conditions:</strong> Ideal for normal farming activities
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   )

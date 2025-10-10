@@ -144,37 +144,45 @@ const Profile = () => {
     }
   }
 
-  if (loading) return <div className="p-8">Loading...</div>
+  if (loading) return (
+    <div className="min-h-screen bg-gradient-to-br from-accent-meadow/10 via-accent-sage/10 to-accent-olive/10 flex items-center justify-center">
+      <div className="glass-card p-8 rounded-xl border border-white/20">
+        <div className="animate-spin w-8 h-8 border-4 border-accent-meadow border-t-transparent rounded-full mx-auto mb-4"></div>
+        <p className="text-text-secondary">Loading profile...</p>
+      </div>
+    </div>
+  )
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">My Profile</h1>
-      
-      <div className="bg-white p-6 rounded-lg shadow-md max-w-2xl">
+    <div className="min-h-screen bg-gradient-to-br from-accent-meadow/10 via-accent-sage/10 to-accent-olive/10 py-8">
+      <div className="max-w-4xl mx-auto px-4">
+        <h1 className="text-3xl font-bold text-text-primary mb-8 text-center">MY PROFILE</h1>
+        
+        <div className="glass-card p-8 rounded-xl shadow-xl border border-white/20 max-w-2xl mx-auto">
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="glass-card border border-red-200 bg-red-50/50 text-red-700 px-4 py-3 rounded-lg mb-6">
             {error}
           </div>
         )}
         <form onSubmit={handleSave} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Name *</label>
+            <label className="block text-sm font-medium text-text-primary mb-2">Name *</label>
             <input
               type="text"
               value={profile.name}
               onChange={(e) => setProfile({...profile, name: e.target.value})}
-              className="w-full border rounded-lg px-3 py-2"
+              className="w-full glass-card border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent-meadow text-text-primary"
               required
             />
           </div>
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">State *</label>
+              <label className="block text-sm font-medium text-text-primary mb-2">State *</label>
               <select
                 value={profile.state}
                 onChange={(e) => setProfile({...profile, state: e.target.value, district: ''})}
-                className="w-full border rounded-lg px-3 py-2"
+                className="w-full glass-card border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent-meadow text-text-primary"
                 required
               >
                 <option value="">Select State</option>
@@ -184,11 +192,11 @@ const Profile = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">District *</label>
+              <label className="block text-sm font-medium text-text-primary mb-2">District *</label>
               <select
                 value={profile.district}
                 onChange={(e) => setProfile({...profile, district: e.target.value})}
-                className="w-full border rounded-lg px-3 py-2"
+                className="w-full glass-card border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent-meadow text-text-primary disabled:opacity-50"
                 required
                 disabled={!profile.state}
               >
@@ -201,19 +209,19 @@ const Profile = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+              <label className="block text-sm font-medium text-text-primary mb-2">Location</label>
               <input
                 type="text"
                 value={profile.location}
                 onChange={(e) => setProfile({...profile, location: e.target.value})}
-                className="w-full border rounded-lg px-3 py-2"
+                className="w-full glass-card border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent-meadow text-text-primary placeholder-text-secondary"
                 placeholder="e.g., Village name"
               />
             </div>
           </div>
 
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-semibold mb-4">Work Preferences</h3>
+          <div className="border-t border-white/20 pt-6">
+            <h3 className="text-lg font-bold text-text-primary mb-4">WORK PREFERENCES</h3>
             
             <div className="flex items-center mb-4">
               <input
@@ -223,42 +231,43 @@ const Profile = () => {
                 onChange={(e) => setProfile({...profile, is_available_for_work: e.target.checked})}
                 className="mr-2"
               />
-              <label htmlFor="available" className="text-sm text-gray-700">
+              <label htmlFor="available" className="text-sm text-text-primary">
                 I am available for farm work
               </label>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-primary mb-2">
                 Maximum travel distance (km)
               </label>
               <input
                 type="number"
                 value={profile.max_travel_distance_km}
                 onChange={(e) => setProfile({...profile, max_travel_distance_km: parseInt(e.target.value)})}
-                className="w-32 border rounded-lg px-3 py-2"
+                className="w-32 glass-card border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent-meadow text-text-primary"
                 min="1"
                 max="200"
               />
             </div>
           </div>
 
-          <div className="flex justify-between">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               type="submit"
-              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
+              className="bg-accent-meadow text-white px-8 py-3 rounded-lg hover:bg-accent-meadow/80 transition-all duration-200 hover:scale-105 font-medium shadow-lg"
             >
               Save Profile
             </button>
             <button
               type="button"
               onClick={handleDeleteAccount}
-              className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700"
+              className="bg-red-500 text-white px-8 py-3 rounded-lg hover:bg-red-600 transition-all duration-200 hover:scale-105 font-medium shadow-lg"
             >
               Delete Account
             </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   )

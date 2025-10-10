@@ -61,31 +61,34 @@ const Register = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-accent-meadow/10 via-accent-sage/10 to-accent-olive/10 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
         className="max-w-md w-full space-y-8"
       >
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="relative overflow-hidden rounded-2xl p-8 bg-gradient-to-br from-accent-sage/25 via-accent-olive/20 to-accent-meadow/15 backdrop-blur-md border border-white/30 shadow-xl">
+          <div className="absolute inset-0 bg-black/5"></div>
+          <div className="absolute top-0 right-0 w-24 h-24 bg-accent-sage/10 rounded-full blur-2xl"></div>
+          <div className="relative z-10">
           <div className="text-center">
             <div className="flex justify-center mb-4">
-              <Sprout className="h-12 w-12 text-green-600" />
+              <Sprout className="h-12 w-12 text-accent-meadow" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Join Farmers Guild</h2>
-            <p className="text-gray-600">Create your account and start your farming journey</p>
+            <h2 className="text-3xl font-bold text-text-primary mb-2">Join Farmers Guild</h2>
+            <p className="text-text-secondary">Create your account and start your farming journey</p>
           </div>
 
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="name" className="block text-sm font-medium text-text-primary mb-2">
                   Full Name
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-gray-400" />
+                    <User className="h-5 w-5 text-accent-sage" />
                   </div>
                   <input
                     id="name"
@@ -94,19 +97,19 @@ const Register = () => {
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="block w-full pl-10 pr-3 py-3 bg-white/80 border border-accent-sage/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-meadow focus:border-transparent backdrop-blur-sm"
                     placeholder="Enter your full name"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="email" className="block text-sm font-medium text-text-primary mb-2">
                   Email Address
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" />
+                    <Mail className="h-5 w-5 text-accent-sage" />
                   </div>
                   <input
                     id="email"
@@ -115,19 +118,19 @@ const Register = () => {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="block w-full pl-10 pr-3 py-3 bg-white/80 border border-accent-sage/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-meadow focus:border-transparent backdrop-blur-sm"
                     placeholder="Enter your email"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="password" className="block text-sm font-medium text-text-primary mb-2">
                   Password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
+                    <Lock className="h-5 w-5 text-accent-sage" />
                   </div>
                   <input
                     id="password"
@@ -136,7 +139,7 @@ const Register = () => {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="block w-full pl-10 pr-10 py-3 bg-white/80 border border-accent-sage/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-meadow focus:border-transparent backdrop-blur-sm"
                     placeholder="Create a password"
                   />
                   <button
@@ -145,21 +148,21 @@ const Register = () => {
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400" />
+                      <EyeOff className="h-5 w-5 text-accent-sage" />
                     ) : (
-                      <Eye className="h-5 w-5 text-gray-400" />
+                      <Eye className="h-5 w-5 text-accent-sage" />
                     )}
                   </button>
                 </div>
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-text-primary mb-2">
                   Confirm Password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
+                    <Lock className="h-5 w-5 text-accent-sage" />
                   </div>
                   <input
                     id="confirmPassword"
@@ -168,7 +171,7 @@ const Register = () => {
                     required
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="block w-full pl-10 pr-10 py-3 bg-white/80 border border-accent-sage/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-meadow focus:border-transparent backdrop-blur-sm"
                     placeholder="Confirm your password"
                   />
                   <button
@@ -177,9 +180,9 @@ const Register = () => {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
                     {showConfirmPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400" />
+                      <EyeOff className="h-5 w-5 text-accent-sage" />
                     ) : (
-                      <Eye className="h-5 w-5 text-gray-400" />
+                      <Eye className="h-5 w-5 text-accent-sage" />
                     )}
                   </button>
                 </div>
@@ -192,15 +195,15 @@ const Register = () => {
                 name="terms"
                 type="checkbox"
                 required
-                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                className="h-4 w-4 text-accent-meadow focus:ring-accent-meadow border-accent-sage/30 rounded"
               />
-              <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
+              <label htmlFor="terms" className="ml-2 block text-sm text-text-primary">
                 I agree to the{' '}
-                <Link to="/terms" className="text-green-600 hover:text-green-500">
+                <Link to="/terms" className="text-accent-meadow hover:text-accent-sage">
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link to="/privacy" className="text-green-600 hover:text-green-500">
+                <Link to="/privacy" className="text-accent-meadow hover:text-accent-sage">
                   Privacy Policy
                 </Link>
               </label>
@@ -209,20 +212,21 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="accent-button w-full py-3 px-4 text-sm font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Creating Account...' : 'Create Account'}
             </button>
 
             <div className="text-center">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-text-secondary">
                 Already have an account?{' '}
-                <Link to="/login" className="font-medium text-green-600 hover:text-green-500">
+                <Link to="/login" className="font-medium text-accent-meadow hover:text-accent-sage">
                   Sign in here
                 </Link>
               </p>
             </div>
           </form>
+          </div>
         </div>
       </motion.div>
     </div>

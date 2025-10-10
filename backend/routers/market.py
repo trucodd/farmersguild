@@ -604,29 +604,41 @@ async def get_market_insights(
         crop_names = [crop.name for crop in user_crops]
         all_insights = {}
         
-        # Get real market data for each crop
+        # Get comprehensive historical market data for each crop
         for crop_name in crop_names:
             try:
-                # Call the updated crop insights endpoint internally
-                crop_insight = await get_crop_insights(user_id, crop_name, market_state, market_district, db)
+                # Call the updated crop insights endpoint with enhanced historical data
+                crop_insight = await get_crop_insights(user_id, crop_name, market_state, market_district, db=db)
                 if crop_insight.get("insights"):
                     all_insights.update(crop_insight["insights"])
+                    print(f"✓ Got {crop_insight.get('total_records', 0)} historical records for {crop_name}")
+                else:
+                    print(f"⚠️ No insights data for {crop_name}")
             except Exception as e:
-                print(f"Error getting insights for {crop_name}: {e}")
+                print(f"❌ Error getting insights for {crop_name}: {e}")
                 continue
         
-        # Generate AI-powered overall summary
+        # Generate AI-powered overall summary with historical context
         if not all_insights:
-            summary = f"No recent market data available for your crops in {market_district}, {market_state}"
+            summary = f"📊 No recent market data available for your crops ({', '.join(crop_names)}) in {market_district}, {market_state}. Try checking nearby districts or contact local markets directly."
         else:
+            total_historical_records = sum(data.get('historical_data_available', 0) for data in all_insights.values())
+            print(f"📈 Generating AI analysis with {total_historical_records} total historical records")
             summary = await generate_multi_crop_ai_analysis(crop_names, market_district, market_state, all_insights)
+        
+        # Enhanced response with historical context
+        total_records = sum(data.get('historical_data_available', 0) for data in all_insights.values())
+        data_quality = "excellent" if total_records >= 50 else "good" if total_records >= 20 else "limited"
         
         return {
             "summary": summary,
             "insights": all_insights,
             "user_crops": crop_names,
             "location": f"{market_district}, {market_state}",
-            "data_source": "live_api_with_ai"
+            "data_source": "historical_api_with_ai",
+            "total_historical_records": total_records,
+            "data_quality": data_quality,
+            "analysis_period": "past_month_trends"
         }
         
     except HTTPException:
@@ -635,52 +647,82 @@ async def get_market_insights(
         raise HTTPException(status_code=500, detail=f"Error generating insights: {str(e)}")
 
 async def generate_multi_crop_ai_analysis(crops: list, district: str, state: str, insights_data: dict) -> str:
-    """Generate AI analysis for multiple crops"""
+    """Generate AI analysis for multiple crops with historical context"""
     if not client:
-        # Fallback analysis
+        # Enhanced fallback analysis with historical trends
         rising_crops = [crop for crop, data in insights_data.items() if data.get('trend') == 'rising']
         falling_crops = [crop for crop, data in insights_data.items() if data.get('trend') == 'falling']
-        summary = f"Market analysis for {len(insights_data)} crops in {district}, {state}: "
+        stable_crops = [crop for crop, data in insights_data.items() if data.get('trend') == 'stable']
+        
+        summary = f"📊 Multi-Crop Market Analysis for {district}, {state}:\n\n"
+        
         if rising_crops:
-            summary += f"Rising prices: {', '.join(rising_crops)}. "
+            summary += f"📈 RISING PRICES: {', '.join(rising_crops)} - Good time to sell!\n"
         if falling_crops:
-            summary += f"Declining prices: {', '.join(falling_crops)}. "
+            summary += f"📉 DECLINING PRICES: {', '.join(falling_crops)} - Consider waiting or check other markets.\n"
+        if stable_crops:
+            summary += f"➡️ STABLE PRICES: {', '.join(stable_crops)} - Shop around for better rates.\n"
+        
+        # Add specific price insights
+        best_price_crop = max(insights_data.items(), key=lambda x: x[1].get('latest_price', 0))
+        summary += f"\n💰 HIGHEST PRICE: {best_price_crop[0]} at ₹{best_price_crop[1].get('latest_price', 0):.0f}/quintal\n"
+        
+        # Add data quality info
+        total_records = sum(data.get('historical_data_available', 0) for data in insights_data.values())
+        summary += f"\n📋 Analysis based on {total_records} historical market records."
+        
         return summary
     
     try:
-        # Prepare multi-crop data for AI
-        analysis_text = f"Multi-Crop Market Analysis for {district}, {state}:\n\n"
+        # Enhanced multi-crop data preparation with historical trends
+        analysis_text = f"Historical Multi-Crop Market Analysis for {district}, {state}:\n\n"
         
-        for crop, data in insights_data.items():
-            analysis_text += f"{crop}:\n"
-            analysis_text += f"  - Price: ₹{data.get('latest_price', 0):.0f}/quintal (₹{data.get('current_price_per_kg', 0):.1f}/kg)\n"
-            analysis_text += f"  - Status: {data.get('price_status', 'Average Price')}\n"
-            analysis_text += f"  - Fair Deal: {'Yes' if data.get('is_fair_deal', False) else 'Shop around'}\n"
-            analysis_text += f"  - Advice: {data.get('practical_advice', 'Check local rates')}\n\n"
+        # Sort crops by price for better analysis
+        sorted_crops = sorted(insights_data.items(), key=lambda x: x[1].get('latest_price', 0), reverse=True)
         
+        analysis_text += "📊 CROP PERFORMANCE SUMMARY:\n"
+        for i, (crop, data) in enumerate(sorted_crops, 1):
+            trend_emoji = "📈" if data.get('trend') == 'rising' else "📉" if data.get('trend') == 'falling' else "➡️"
+            analysis_text += f"{i}. {crop} {trend_emoji}:\n"
+            analysis_text += f"   • Current: ₹{data.get('latest_price', 0):.0f}/quintal (₹{data.get('current_price_per_kg', 0):.1f}/kg)\n"
+            analysis_text += f"   • Range: {data.get('typical_price_range', 'N/A')}\n"
+            analysis_text += f"   • Status: {data.get('price_status', 'Average')}\n"
+            analysis_text += f"   • Trend: {data.get('trend', 'stable')} (based on {data.get('historical_data_available', 0)} records)\n"
+            analysis_text += f"   • Market Confidence: {data.get('market_confidence', 'moderate')}\n"
+            analysis_text += f"   • Volatility: {data.get('price_volatility', 'moderate')}\n\n"
+        
+        # Add market context
+        total_records = sum(data.get('historical_data_available', 0) for data in insights_data.values())
+        analysis_text += f"📋 ANALYSIS CONTEXT:\n"
+        analysis_text += f"• Total Historical Records: {total_records}\n"
+        analysis_text += f"• Market Location: {district}, {state}\n"
+        analysis_text += f"• Analysis Period: Past month with recent trends\n\n"
+        
+        # Enhanced AI prompt with historical context
         prompt = f"""
-Analyze this multi-crop market data to help the farmer prioritize:
+Analyze this comprehensive historical market data to help the farmer make strategic decisions:
 
 {analysis_text}
 
-Based on the actual price data, provide:
-1. **Best Prices**: Which crops have the best prices right now?
-2. **Market Shopping**: Which crops should the farmer check other markets for?
-3. **Variety Advantage**: Are there better varieties the farmer should consider?
-4. **Priority Selling**: Which crops to sell first based on prices and perishability?
-5. **Action Plan**: Simple steps for this week.
+Based on the month-long historical trends and current market conditions, provide:
 
-Use the actual data to give specific, actionable advice. Keep under 120 words.
+1. **Priority Selling**: Which crops should be sold immediately based on price trends?
+2. **Market Strategy**: Which crops need market shopping vs local selling?
+3. **Timing Advice**: Which crops to hold vs sell based on historical patterns?
+4. **Risk Assessment**: Which crops have volatile prices requiring quick action?
+5. **Weekly Action Plan**: Specific steps for the next 7 days.
+
+Use the historical trend data to give strategic, data-driven advice. Keep under 180 words.
 """
         
         completion = client.chat.completions.create(
             extra_headers={
                 "HTTP-Referer": "https://farmersguild.com",
-                "X-Title": "Farmers Guild Multi-Crop Analysis",
+                "X-Title": "Farmers Guild Historical Multi-Crop Analysis",
             },
             model="deepseek/deepseek-chat-v3.1:free",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=200,
+            max_tokens=300,
             temperature=0.7
         )
         
@@ -688,70 +730,121 @@ Use the actual data to give specific, actionable advice. Keep under 120 words.
         
     except Exception as e:
         print(f"Multi-crop AI analysis error: {e}")
-        return f"Market analysis for {len(insights_data)} crops in {district}, {state} based on recent data."
+        # Enhanced fallback with historical context
+        rising_count = len([c for c, d in insights_data.items() if d.get('trend') == 'rising'])
+        falling_count = len([c for c, d in insights_data.items() if d.get('trend') == 'falling'])
+        total_records = sum(data.get('historical_data_available', 0) for data in insights_data.values())
+        
+        return f"📊 Historical analysis for {len(insights_data)} crops in {district}, {state}: {rising_count} rising, {falling_count} falling. Based on {total_records} market records over the past month. Check individual crop trends for selling decisions."
 
 async def generate_ai_market_analysis(crop: str, district: str, state: str, raw_data: list, price_analysis: dict) -> str:
-    """Generate AI-powered market analysis using DeepSeek model"""
+    """Generate AI-powered market analysis using DeepSeek model with historical data"""
     if not client:
-        # Fallback to basic analysis if AI not available
+        # Enhanced fallback with historical context
         current_price = price_analysis.get('latest_price', 0)
         trend = price_analysis.get('trend', 'stable')
         price_change = price_analysis.get('price_change', 0)
-        avg_price = price_analysis.get('average_price', 0)
+        avg_price = price_analysis.get('avg_price', 0)
         min_price = price_analysis.get('min_price', 0)
         max_price = price_analysis.get('max_price', 0)
         
-        summary = f"Based on {len(raw_data)} recent market records for {crop} in {district}, {state}: "
-        summary += f"Current price is ₹{current_price:.0f} per quintal. "
+        # Create historical context from raw data
+        historical_context = ""
+        if len(raw_data) > 1:
+            dates = [r.get('date', '') for r in raw_data if r.get('date')]
+            prices = [r.get('modal_price', 0) for r in raw_data if r.get('modal_price', 0) > 0]
+            
+            if len(prices) > 1:
+                price_trend = "rising" if prices[-1] > prices[0] else "falling" if prices[-1] < prices[0] else "stable"
+                historical_context = f"Over the past month, prices have been {price_trend}. "
+                
+                # Add specific price movements
+                if len(prices) >= 3:
+                    recent_avg = sum(prices[-3:]) / 3
+                    older_avg = sum(prices[:3]) / 3 if len(prices) >= 6 else sum(prices[:-3]) / len(prices[:-3]) if len(prices) > 3 else recent_avg
+                    
+                    if recent_avg > older_avg * 1.05:
+                        historical_context += f"Recent prices (₹{recent_avg:.0f}) are {((recent_avg/older_avg-1)*100):.1f}% higher than earlier. "
+                    elif recent_avg < older_avg * 0.95:
+                        historical_context += f"Recent prices (₹{recent_avg:.0f}) are {((1-recent_avg/older_avg)*100):.1f}% lower than earlier. "
+        
+        summary = f"📊 Market Analysis for {crop} in {district}, {state}:\n\n"
+        summary += f"💰 Current Price: ₹{current_price:.0f}/quintal (₹{current_price/100:.1f}/kg)\n"
+        summary += f"📈 Price Range: ₹{min_price:.0f} - ₹{max_price:.0f} (Avg: ₹{avg_price:.0f})\n"
+        summary += f"📊 {historical_context}" if historical_context else ""
         
         if trend == "rising":
-            summary += f"Prices are trending upward with a ₹{price_change:.0f} increase over the past 10 days. "
+            summary += f"🔥 Trending UP by ₹{price_change:.0f}. Good time to sell!\n"
         elif trend == "falling":
-            summary += f"Prices are declining with a ₹{abs(price_change):.0f} decrease over the past 10 days. "
+            summary += f"📉 Declining by ₹{abs(price_change):.0f}. Consider waiting or check other markets.\n"
         else:
-            summary += "Prices are relatively stable. "
+            summary += f"➡️ Stable prices. Check nearby markets for better rates.\n"
         
-        summary += f"Price range: ₹{min_price:.0f} - ₹{max_price:.0f}. Average: ₹{avg_price:.0f}."
+        summary += f"\n📍 Based on {len(raw_data)} recent market records."
         return summary
     
     try:
-        # Prepare market data for AI analysis
-        market_data_text = f"Market Data for {crop} in {district}, {state}:\n"
-        market_data_text += f"Data Source: {price_analysis.get('data_source', 'API')}\n"
-        market_data_text += f"Total Records: {len(raw_data)}\n\n"
+        # Enhanced market data preparation with historical analysis
+        historical_prices = [r.get('modal_price', 0) for r in raw_data if r.get('modal_price', 0) > 0]
+        historical_dates = [r.get('date', '') for r in raw_data if r.get('date')]
         
-        market_data_text += "Price Information for Farmer:\n"
-        market_data_text += f"- Today's Price: ₹{price_analysis.get('current_price_per_quintal', 0):.0f} per quintal (₹{price_analysis.get('current_price_per_kg', 0):.1f} per kg)\n"
-        market_data_text += f"- Typical Range: {price_analysis.get('typical_price_range', 'N/A')} per quintal\n"
+        # Calculate month-over-month trends
+        monthly_trend = "stable"
+        if len(historical_prices) >= 5:
+            recent_prices = historical_prices[-3:]
+            older_prices = historical_prices[:3]
+            recent_avg = sum(recent_prices) / len(recent_prices)
+            older_avg = sum(older_prices) / len(older_prices)
+            
+            change_pct = ((recent_avg / older_avg) - 1) * 100 if older_avg > 0 else 0
+            if change_pct > 10:
+                monthly_trend = f"rising {change_pct:.1f}%"
+            elif change_pct < -10:
+                monthly_trend = f"falling {abs(change_pct):.1f}%"
+            else:
+                monthly_trend = f"stable (±{abs(change_pct):.1f}%)"
+        
+        market_data_text = f"Historical Market Analysis for {crop} in {district}, {state}:\n\n"
+        market_data_text += f"📊 CURRENT SITUATION:\n"
+        market_data_text += f"- Latest Price: ₹{price_analysis.get('latest_price', 0):.0f}/quintal (₹{price_analysis.get('current_price_per_kg', 0):.1f}/kg)\n"
         market_data_text += f"- Price Status: {price_analysis.get('price_status', 'Average')}\n"
-        market_data_text += f"- Fair Deal: {'Yes' if price_analysis.get('is_fair_deal', False) else 'Check other markets'}\n"
-        market_data_text += f"- Worth traveling for price difference above: ₹{price_analysis.get('worth_traveling_if_difference_above', 50):.0f}\n\n"
+        market_data_text += f"- Monthly Trend: {monthly_trend}\n\n"
+        
+        market_data_text += f"📈 HISTORICAL DATA ({len(raw_data)} records):\n"
+        market_data_text += f"- Price Range: ₹{price_analysis.get('min_price', 0):.0f} - ₹{price_analysis.get('max_price', 0):.0f}\n"
+        market_data_text += f"- Average Price: ₹{price_analysis.get('avg_price', 0):.0f}\n"
+        
+        if len(historical_prices) >= 3:
+            market_data_text += f"- Recent 3 records avg: ₹{sum(historical_prices[-3:])/3:.0f}\n"
+            if len(historical_prices) >= 6:
+                market_data_text += f"- Earlier 3 records avg: ₹{sum(historical_prices[:3])/3:.0f}\n"
         
         if raw_data:
-            market_data_text += "Recent Market Records:\n"
-            for i, record in enumerate(raw_data[:5], 1):  # Show top 5 records
-                market_data_text += f"{i}. Date: {record.get('date', 'N/A')}, Market: {record.get('market', 'N/A')}, Price: ₹{record.get('modal_price', 0):.0f}, Variety: {record.get('variety', 'N/A')}\n"
+            market_data_text += f"\n🏪 RECENT MARKET RECORDS:\n"
+            for i, record in enumerate(raw_data[:5], 1):
+                market_data_text += f"{i}. {record.get('date', 'N/A')} | {record.get('market', 'N/A')} | ₹{record.get('modal_price', 0):.0f} | {record.get('variety', 'N/A')}\n"
         
-        # Create AI prompt for market analysis
+        # Enhanced AI prompt with historical context
         prompt = f"""
-Analyze this market data to help a farmer make practical decisions:
+Analyze this historical market data to provide actionable insights for a farmer:
 
 {market_data_text}
 
-Using the actual market data provided, give practical insights:
-1. **Price Assessment**: Is this price good/average/poor based on the data range?
-2. **Market Comparison**: Based on the different markets shown, where are the best prices?
-3. **Variety Impact**: Do certain varieties get better prices?
-4. **Practical Action**: What should the farmer do - sell locally or check specific other markets?
-5. **Transport Economics**: Is the price difference worth the travel cost?
+Based on the month-long price history and trends, provide:
 
-Base advice on the actual data shown. Keep practical and under 120 words.
+1. **Price Assessment**: How does current price compare to the historical range?
+2. **Trend Analysis**: What does the month-over-month data suggest?
+3. **Market Timing**: Should farmer sell now or wait based on historical patterns?
+4. **Market Selection**: Which specific markets show better historical prices?
+5. **Practical Action**: Concrete next steps based on the data trends.
+
+Use the actual historical data to give specific, data-driven advice. Keep under 150 words.
 """
         
         completion = client.chat.completions.create(
             extra_headers={
                 "HTTP-Referer": "https://farmersguild.com",
-                "X-Title": "Farmers Guild Market Analysis",
+                "X-Title": "Farmers Guild Historical Market Analysis",
             },
             model="deepseek/deepseek-chat-v3.1:free",
             messages=[
@@ -760,7 +853,7 @@ Base advice on the actual data shown. Keep practical and under 120 words.
                     "content": prompt
                 }
             ],
-            max_tokens=300,
+            max_tokens=400,
             temperature=0.7
         )
         
@@ -768,10 +861,11 @@ Base advice on the actual data shown. Keep practical and under 120 words.
         
     except Exception as e:
         print(f"AI analysis error: {e}")
-        # Fallback to basic analysis
+        # Enhanced fallback with historical context
         current_price = price_analysis.get('latest_price', 0)
         trend = price_analysis.get('trend', 'stable')
-        return f"Market analysis for {crop} in {district}, {state}: Current price ₹{current_price:.0f}, trend is {trend}. Based on {len(raw_data)} recent records."
+        historical_context = f"Based on {len(raw_data)} records over the past month" if raw_data else "Limited data available"
+        return f"📊 {historical_context}: {crop} in {district}, {state} - Current: ₹{current_price:.0f}, Trend: {trend}. Check multiple markets for best rates."
 
 @router.get("/crop-insights/{user_id}")
 async def get_crop_insights(
@@ -797,71 +891,115 @@ async def get_crop_insights(
         if not MARKET_PRICE_API_KEY:
             raise HTTPException(status_code=503, detail="Market API not configured")
         
-        # Try to fetch market data for specific date or use fallback strategy
+        # Enhanced data fetching with month-long historical context
         from datetime import datetime, timedelta
         
         df = None
         data_source = "unknown"
         
-        if date_type in ['week', 'month'] and start_date and end_date:
-            # Handle date range - get data for multiple days and aggregate
-            from datetime import datetime, timedelta
-            
-            start_dt = datetime.strptime(start_date, '%d/%m/%Y')
-            end_dt = datetime.strptime(end_date, '%d/%m/%Y')
-            
-            all_data = []
-            current_date = start_dt
-            
-            while current_date <= end_dt:
-                date_str = current_date.strftime('%d/%m/%Y')
-                params = {
-                    "api-key": MARKET_PRICE_API_KEY,
-                    "format": "csv",
-                    "filters[State]": market_state,
-                    "filters[District]": market_district,
-                    "filters[Commodity]": crop,
-                    "filters[Arrival_Date]": date_str,
-                    "limit": 50
-                }
-                
-                try:
-                    response = requests.get(MARKET_PRICE_API_URL, params=params, timeout=15)
-                    if response.status_code == 200:
-                        day_df = pd.read_csv(StringIO(response.text))
-                        if not day_df.empty:
-                            all_data.append(day_df)
-                except:
-                    pass
-                
-                current_date += timedelta(days=1)
-            
-            if all_data:
-                df = pd.concat(all_data, ignore_index=True)
-                data_source = f"{date_type}_range_{start_date}_to_{end_date}"
-        elif date:
-            # Use specific date provided by user
+        # Always try to get month-long data for better AI insights
+        today = datetime.now()
+        month_ago = today - timedelta(days=30)
+        
+        # First, try to get comprehensive monthly data
+        monthly_data = []
+        for days_back in range(0, 31, 3):  # Sample every 3 days for past month
+            sample_date = (today - timedelta(days=days_back)).strftime('%d/%m/%Y')
             params = {
                 "api-key": MARKET_PRICE_API_KEY,
                 "format": "csv",
                 "filters[State]": market_state,
                 "filters[District]": market_district,
                 "filters[Commodity]": crop,
-                "filters[Arrival_Date]": date,
-                "limit": 10
+                "filters[Arrival_Date]": sample_date,
+                "limit": 20
             }
             
             try:
-                response = requests.get(MARKET_PRICE_API_URL, params=params, timeout=15)
+                response = requests.get(MARKET_PRICE_API_URL, params=params, timeout=10)
                 if response.status_code == 200:
-                    df = pd.read_csv(StringIO(response.text))
-                    if not df.empty:
-                        data_source = f"specific_date_{date}"
+                    day_df = pd.read_csv(StringIO(response.text))
+                    if not day_df.empty:
+                        monthly_data.append(day_df)
             except:
-                pass
-        else:
+                continue
+        
+        if monthly_data:
+            df = pd.concat(monthly_data, ignore_index=True)
+            data_source = "monthly_historical_data"
+        
+        # If we don't have monthly data yet, try the original date-specific logic
+        if df is None or df.empty:
+            if date_type in ['week', 'month'] and start_date and end_date:
+                # Handle date range - get data for multiple days and aggregate
+                from datetime import datetime, timedelta
+                
+                start_dt = datetime.strptime(start_date, '%d/%m/%Y')
+                end_dt = datetime.strptime(end_date, '%d/%m/%Y')
+                
+                all_data = []
+                current_date = start_dt
+                
+                while current_date <= end_dt:
+                    date_str = current_date.strftime('%d/%m/%Y')
+                    params = {
+                        "api-key": MARKET_PRICE_API_KEY,
+                        "format": "csv",
+                        "filters[State]": market_state,
+                        "filters[District]": market_district,
+                        "filters[Commodity]": crop,
+                        "filters[Arrival_Date]": date_str,
+                        "limit": 50
+                    }
+                    
+                    try:
+                        response = requests.get(MARKET_PRICE_API_URL, params=params, timeout=15)
+                        if response.status_code == 200:
+                            day_df = pd.read_csv(StringIO(response.text))
+                            if not day_df.empty:
+                                all_data.append(day_df)
+                    except:
+                        pass
+                    
+                    current_date += timedelta(days=1)
+                
+                if all_data:
+                    if df is None or df.empty:
+                        df = pd.concat(all_data, ignore_index=True)
+                        data_source = f"{date_type}_range_{start_date}_to_{end_date}"
+                    else:
+                        # Merge with existing monthly data
+                        additional_df = pd.concat(all_data, ignore_index=True)
+                        df = pd.concat([df, additional_df], ignore_index=True).drop_duplicates()
+                        data_source += f"_plus_{date_type}_range"
+            elif date and (df is None or df.empty):
+                # Use specific date provided by user only if no monthly data
+                params = {
+                    "api-key": MARKET_PRICE_API_KEY,
+                    "format": "csv",
+                    "filters[State]": market_state,
+                    "filters[District]": market_district,
+                    "filters[Commodity]": crop,
+                    "filters[Arrival_Date]": date,
+                    "limit": 10
+                }
+                
+                try:
+                    response = requests.get(MARKET_PRICE_API_URL, params=params, timeout=15)
+                    if response.status_code == 200:
+                        specific_df = pd.read_csv(StringIO(response.text))
+                        if not specific_df.empty:
+                            if df is None or df.empty:
+                                df = specific_df
+                                data_source = f"specific_date_{date}"
+                            else:
+                                df = pd.concat([df, specific_df], ignore_index=True).drop_duplicates()
+                                data_source += f"_plus_specific_date"
+                except:
+                    pass
+        # Additional fallback only if we still don't have data
+        if df is None or df.empty:
             # Fallback to original multiple date strategy
-            today = datetime.now()
             date_formats_to_try = [
                 # Format 1: DD/MM/YYYY
                 today.strftime('%d/%m/%Y'),
@@ -958,17 +1096,32 @@ async def get_crop_insights(
                 "raw_data": []
             }
         
-        # Analyze the real price data for selling decisions
+        # Enhanced price analysis with historical context
         current_price = prices[-1] if prices else 0
         avg_price = sum(prices) / len(prices) if prices else 0
         min_price = min(prices) if prices else 0
         max_price = max(prices) if prices else 0
         
-        # Simple practical analysis for farmers
+        # Enhanced trend analysis using more data points
         trend = "stable"
         price_change = 0
         
-        if len(prices) >= 2:
+        if len(prices) >= 3:
+            # Use recent vs older average for better trend detection
+            recent_count = min(5, len(prices) // 2)
+            recent_avg = sum(prices[-recent_count:]) / recent_count
+            older_avg = sum(prices[:recent_count]) / recent_count if len(prices) >= recent_count * 2 else sum(prices[:-recent_count]) / (len(prices) - recent_count)
+            
+            price_change = recent_avg - older_avg
+            price_change_percent = (price_change / older_avg) * 100 if older_avg > 0 else 0
+            
+            if price_change_percent > 8:
+                trend = "rising"
+            elif price_change_percent < -8:
+                trend = "falling"
+            else:
+                trend = "stable"
+        elif len(prices) >= 2:
             price_change = prices[-1] - prices[0]
             price_change_percent = (price_change / prices[0]) * 100 if prices[0] > 0 else 0
             
@@ -998,6 +1151,7 @@ async def get_crop_insights(
             "is_fair_deal": current_price >= avg_price * 0.95
         }
         
+        # Enhanced insights with historical context
         insights = {
             crop: {
                 "latest_price": current_price,
@@ -1013,7 +1167,10 @@ async def get_crop_insights(
                 "is_fair_deal": market_insight["is_fair_deal"],
                 "worth_traveling_if_difference_above": market_insight["transport_threshold"],
                 "trend": trend,
-                "data_points": len(prices)
+                "data_points": len(prices),
+                "historical_data_available": len(raw_data),
+                "price_volatility": "high" if (max_price - min_price) / avg_price > 0.3 else "moderate" if (max_price - min_price) / avg_price > 0.15 else "low",
+                "market_confidence": "high" if len(raw_data) >= 10 else "moderate" if len(raw_data) >= 5 else "low"
             }
         }
         
@@ -1027,9 +1184,11 @@ async def get_crop_insights(
             "summary": summary,
             "insights": insights,
             "location": f"{market_district}, {market_state}",
-            "raw_data": raw_data[:10],  # Return up to 10 records
+            "raw_data": raw_data[:15],  # Return up to 15 records for better context
             "data_source": data_source,
-            "total_records": len(raw_data)
+            "total_records": len(raw_data),
+            "analysis_period": "past_month" if "monthly" in data_source else "recent_days",
+            "data_quality": "excellent" if len(raw_data) >= 15 else "good" if len(raw_data) >= 8 else "limited"
         }
         
     except HTTPException:

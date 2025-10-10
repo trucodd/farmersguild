@@ -33,18 +33,18 @@ const DiseaseDetection = ({ crop }) => {
   }
 
   return (
-    <div className="flex-1 p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen p-6">
+      <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
-          <Camera className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Disease Detection</h2>
-          <p className="text-gray-600">Upload a photo of your {crop.name} for AI-powered disease analysis</p>
+          <Camera className="h-12 w-12 text-accent-meadow mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-text-primary mb-2">Disease Detection</h2>
+          <p className="text-text-secondary">Upload a photo of your {crop.name} for AI-powered disease analysis</p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-3 gap-8">
           {/* Upload Section */}
-          <div className="space-y-6">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
+          <div className="lg:col-span-1 space-y-6">
+            <div className="bg-white/90 backdrop-blur-sm border-2 border-dashed border-accent-sage/30 rounded-lg p-8 text-center hover:border-accent-sage/50 transition-colors shadow-sm">
               {selectedImage ? (
                 <div className="space-y-4">
                   <img
@@ -54,15 +54,15 @@ const DiseaseDetection = ({ crop }) => {
                   />
                   <button
                     onClick={() => setSelectedImage(null)}
-                    className="text-sm text-gray-500 hover:text-gray-700"
+                    className="text-sm text-text-secondary hover:text-text-primary"
                   >
                     Remove image
                   </button>
                 </div>
               ) : (
                 <div>
-                  <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">Drop your image here or click to browse</p>
+                  <Upload className="h-12 w-12 text-accent-sage mx-auto mb-4" />
+                  <p className="text-text-secondary mb-4">Drop your image here or click to browse</p>
                   <input
                     type="file"
                     accept="image/*"
@@ -72,7 +72,7 @@ const DiseaseDetection = ({ crop }) => {
                   />
                   <label
                     htmlFor="image-upload"
-                    className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors cursor-pointer inline-block"
+                    className="accent-button px-6 py-2 rounded-lg cursor-pointer inline-block"
                   >
                     Choose Image
                   </label>
@@ -84,7 +84,7 @@ const DiseaseDetection = ({ crop }) => {
               <button
                 onClick={analyzeImage}
                 disabled={isAnalyzing}
-                className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                className="w-full accent-button py-3 rounded-lg disabled:opacity-50"
               >
                 {isAnalyzing ? 'Analyzing...' : 'Analyze for Diseases'}
               </button>
@@ -92,41 +92,39 @@ const DiseaseDetection = ({ crop }) => {
           </div>
 
           {/* Results Section */}
-          <div className="space-y-6">
+          <div className="lg:col-span-2 space-y-6 min-h-96">
             {isAnalyzing && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
-                <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-                <p className="text-blue-700 font-medium">Analyzing your {crop.name} image...</p>
-                <p className="text-blue-600 text-sm mt-2">This may take a few moments</p>
+              <div className="bg-white/90 backdrop-blur-sm border border-accent-sage/30 rounded-lg p-6 text-center shadow-sm">
+                <div className="animate-spin w-8 h-8 border-4 border-accent-meadow border-t-transparent rounded-full mx-auto mb-4"></div>
+                <p className="text-text-primary font-medium">Analyzing your {crop.name} image...</p>
+                <p className="text-text-secondary text-sm mt-2">This may take a few moments</p>
               </div>
             )}
 
             {result && (
               <div className="space-y-4">
-                <div className={`border rounded-lg p-6 ${
-                  result.disease === 'Healthy' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
-                }`}>
+                <div className="bg-white/90 backdrop-blur-sm border border-accent-sage/30 rounded-lg p-6 shadow-sm">
                   <div className="flex items-center space-x-3 mb-4">
                     {result.disease === 'Healthy' ? (
                       <CheckCircle className="h-6 w-6 text-green-600" />
                     ) : (
                       <AlertTriangle className="h-6 w-6 text-red-600" />
                     )}
-                    <h3 className="text-lg font-semibold text-gray-900">Detection Result</h3>
+                    <h3 className="text-lg font-semibold text-text-primary">Detection Result</h3>
                   </div>
                   
                   <div className="space-y-3">
                     <div>
-                      <p className="text-sm text-gray-600">Disease Detected</p>
-                      <p className="font-semibold text-gray-900">{result.disease}</p>
+                      <p className="text-sm text-text-secondary">Disease Detected</p>
+                      <p className="font-semibold text-text-primary">{result.disease}</p>
                     </div>
                     
                     <div>
-                      <p className="text-sm text-gray-600">Confidence Level</p>
+                      <p className="text-sm text-text-secondary">Confidence Level</p>
                       <div className="flex items-center space-x-2">
                         <div className="flex-1 bg-gray-200 rounded-full h-2">
                           <div 
-                            className="bg-red-600 h-2 rounded-full" 
+                            className="bg-accent-meadow h-2 rounded-full" 
                             style={{ width: `${result.confidence}%` }}
                           ></div>
                         </div>
@@ -135,7 +133,7 @@ const DiseaseDetection = ({ crop }) => {
                     </div>
                     
                     <div>
-                      <p className="text-sm text-gray-600">Severity</p>
+                      <p className="text-sm text-text-secondary">Severity</p>
                       <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
                         result.severity === 'Low' ? 'bg-yellow-100 text-yellow-800' :
                         result.severity === 'Moderate' ? 'bg-orange-100 text-orange-800' :
@@ -147,16 +145,16 @@ const DiseaseDetection = ({ crop }) => {
                   </div>
                 </div>
 
-                <div className="bg-white border border-gray-200 rounded-lg p-6">
-                  <h4 className="font-semibold text-gray-900 mb-3">Recommended Treatment</h4>
-                  <p className="text-gray-700">{result.treatment}</p>
+                <div className="bg-white/90 backdrop-blur-sm border border-accent-sage/30 rounded-lg p-6 shadow-sm">
+                  <h4 className="font-semibold text-text-primary mb-3">Recommended Treatment</h4>
+                  <p className="text-text-secondary">{result.treatment}</p>
                 </div>
               </div>
             )}
 
             {!selectedImage && !isAnalyzing && !result && (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-                <p className="text-gray-500">Upload an image to get started with disease detection</p>
+              <div className="bg-white/90 backdrop-blur-sm border border-accent-sage/30 rounded-lg p-6 text-center shadow-sm">
+                <p className="text-text-secondary">Upload an image to get started with disease detection</p>
               </div>
             )}
           </div>

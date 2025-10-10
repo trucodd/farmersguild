@@ -67,29 +67,36 @@ const Chat = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-accent-meadow/10 via-accent-sage/10 to-accent-olive/10">
+      <div className="max-w-4xl mx-auto py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="bg-white rounded-2xl shadow-lg overflow-hidden"
+          className="glass-card rounded-2xl shadow-xl overflow-hidden border border-white/20"
         >
           {/* Chat Header */}
-          <div className="bg-green-600 px-6 py-4">
-            <div className="flex items-center space-x-3">
-              <div className="bg-white rounded-full p-2">
-                <Bot className="h-6 w-6 text-green-600" />
+          <div className="relative overflow-hidden px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-br from-accent-meadow/20 via-accent-sage/15 to-accent-olive/20 backdrop-blur-md border-b border-white/20">
+            <div className="absolute inset-0 bg-black/5"></div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-accent-meadow/10 rounded-full blur-3xl"></div>
+            <div className="relative z-10 flex items-center space-x-3">
+              <div className="bg-accent-meadow/20 rounded-full p-2">
+                <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-accent-meadow" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-white">AI Farming Assistant</h1>
-                <p className="text-green-100 text-sm">Always here to help with your farming questions</p>
+                <h1 className="text-lg sm:text-xl font-bold text-text-primary">AI FARMING ASSISTANT</h1>
+                <p className="text-text-secondary text-xs sm:text-sm">Always here to help with your farming questions</p>
               </div>
             </div>
           </div>
 
           {/* Messages Container */}
-          <div className="h-96 overflow-y-auto p-6 space-y-4">
+          <div className="h-64 sm:h-80 lg:h-96 overflow-y-auto p-4 sm:p-6 space-y-3 sm:space-y-4" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+            <style jsx>{`
+              div::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
             <AnimatePresence>
               {messages.map((message) => (
                 <motion.div
@@ -100,26 +107,26 @@ const Chat = () => {
                   transition={{ duration: 0.3 }}
                   className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className={`flex items-start space-x-3 max-w-xs lg:max-w-md ${
+                  <div className={`flex items-start space-x-2 sm:space-x-3 max-w-xs sm:max-w-sm lg:max-w-md ${
                     message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''
                   }`}>
-                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                      message.type === 'user' ? 'bg-blue-600' : 'bg-green-600'
+                    <div className={`flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${
+                      message.type === 'user' ? 'bg-accent-sage' : 'bg-accent-meadow'
                     }`}>
                       {message.type === 'user' ? (
-                        <User className="h-4 w-4 text-white" />
+                        <User className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                       ) : (
-                        <Bot className="h-4 w-4 text-white" />
+                        <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                       )}
                     </div>
-                    <div className={`rounded-2xl px-4 py-3 ${
+                    <div className={`rounded-2xl px-3 sm:px-4 py-2 sm:py-3 ${
                       message.type === 'user' 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-gray-100 text-gray-900'
+                        ? 'bg-accent-sage text-white' 
+                        : 'glass-card border border-white/10 text-text-primary'
                     }`}>
-                      <p className="text-sm">{message.content}</p>
+                      <p className="text-xs sm:text-sm">{message.content}</p>
                       <p className={`text-xs mt-1 ${
-                        message.type === 'user' ? 'text-blue-100' : 'text-gray-500'
+                        message.type === 'user' ? 'text-white/80' : 'text-text-secondary'
                       }`}>
                         {formatTime(message.timestamp)}
                       </p>
@@ -137,13 +144,13 @@ const Chat = () => {
                 className="flex justify-start"
               >
                 <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-600 flex items-center justify-center">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent-meadow flex items-center justify-center">
                     <Bot className="h-4 w-4 text-white" />
                   </div>
-                  <div className="bg-gray-100 rounded-2xl px-4 py-3">
+                  <div className="glass-card border border-white/10 rounded-2xl px-4 py-3">
                     <div className="flex items-center space-x-2">
-                      <Loader className="h-4 w-4 animate-spin text-gray-600" />
-                      <span className="text-sm text-gray-600">AI is thinking...</span>
+                      <Loader className="h-4 w-4 animate-spin text-accent-meadow" />
+                      <span className="text-sm text-text-secondary">AI is thinking...</span>
                     </div>
                   </div>
                 </div>
@@ -153,32 +160,32 @@ const Chat = () => {
           </div>
 
           {/* Message Input */}
-          <div className="border-t border-gray-200 p-6">
-            <form onSubmit={handleSendMessage} className="flex space-x-4">
+          <div className="border-t border-white/20 p-4 sm:p-6">
+            <form onSubmit={handleSendMessage} className="flex space-x-2 sm:space-x-4">
               <div className="flex-1">
                 <input
                   type="text"
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   placeholder="Ask me anything about farming..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 glass-card border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-meadow text-text-primary placeholder-text-secondary text-sm sm:text-base"
                   disabled={isLoading}
                 />
               </div>
               <button
                 type="submit"
                 disabled={!inputMessage.trim() || isLoading}
-                className="bg-green-600 text-white p-3 rounded-xl hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="bg-accent-meadow text-white p-2 sm:p-3 rounded-xl hover:bg-accent-meadow/80 focus:outline-none focus:ring-2 focus:ring-accent-meadow disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                <Send className="h-5 w-5" />
+                <Send className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
             </form>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-2 sm:mt-3 flex flex-wrap gap-1 sm:gap-2">
               {['Crop rotation tips', 'Soil health', 'Weather forecast', 'Market prices'].map((suggestion) => (
                 <button
                   key={suggestion}
                   onClick={() => setInputMessage(suggestion)}
-                  className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
+                  className="px-2 sm:px-3 py-1 text-xs sm:text-sm glass-card border border-white/10 text-text-secondary rounded-full hover:bg-white/10 transition-colors"
                 >
                   {suggestion}
                 </button>
