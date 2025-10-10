@@ -35,32 +35,47 @@ const Chat = () => {
     }
 
     setMessages(prev => [...prev, userMessage])
+    const messageContent = inputMessage
     setInputMessage('')
     setIsLoading(true)
 
-    // Simulate AI response
-    setTimeout(() => {
-      const botResponse = {
+    try {
+      const response = await fetch('/api/chat/general', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ content: messageContent })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const botResponse = {
+          id: Date.now() + 1,
+          type: 'bot',
+          content: data.response,
+          timestamp: new Date()
+        }
+        setMessages(prev => [...prev, botResponse])
+      } else {
+        throw new Error('Failed to get AI response')
+      }
+    } catch (error) {
+      console.error('Error getting AI response:', error)
+      const errorResponse = {
         id: Date.now() + 1,
         type: 'bot',
-        content: generateAIResponse(inputMessage),
+        content: "I'm sorry, I'm having trouble connecting right now. Please try again later.",
         timestamp: new Date()
       }
-      setMessages(prev => [...prev, botResponse])
+      setMessages(prev => [...prev, errorResponse])
+    } finally {
       setIsLoading(false)
-    }, 1500)
+    }
   }
 
-  const generateAIResponse = (message) => {
-    const responses = [
-      "Based on your query about farming, I'd recommend considering soil pH levels and nutrient content for optimal crop growth.",
-      "For sustainable farming practices, crop rotation and organic fertilizers can significantly improve soil health.",
-      "Weather patterns suggest planning irrigation schedules accordingly. Would you like specific recommendations for your crop type?",
-      "Market analysis shows favorable conditions for organic produce. Consider diversifying your crop portfolio.",
-      "Pest management is crucial this season. Integrated pest management (IPM) strategies would be most effective."
-    ]
-    return responses[Math.floor(Math.random() * responses.length)]
-  }
+
 
   const formatTime = (timestamp) => {
     return timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })

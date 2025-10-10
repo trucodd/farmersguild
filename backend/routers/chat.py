@@ -6,6 +6,7 @@ from database import get_db
 from models import User, Conversation, Message, Crop
 from routers.users import get_current_user
 from ai.services.crop_ai_service import crop_ai_service
+from langchain_openai import ChatOpenAI
 import os
 
 router = APIRouter()
@@ -155,6 +156,37 @@ async def get_conversations(
         ))
     
     return result
+
+@router.post("/general")
+async def general_agriculture_chat(
+    message: ChatMessage,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """General agriculture AI chat - not crop specific"""
+    try:
+        if not OPENROUTER_API_KEY:
+            return {"response": "I'm sorry, AI service is not configured. Please try again later."}
+        
+        llm = ChatOpenAI(
+            openai_api_key=OPENROUTER_API_KEY,
+            openai_api_base=OPENROUTER_BASE_URL,
+            model_name="x-ai/grok-2-1212",
+            max_tokens=500,
+            temperature=0.7
+        )
+        
+        system_message = "You are an expert agricultural advisor AI assistant. Provide helpful, accurate, and practical advice about farming, agriculture, crop management, livestock, soil health, pest control, weather patterns, market trends, and all aspects of agricultural practices. Be conversational and supportive."
+        
+        response = llm.invoke([
+            {"role": "system", "content": system_message}, 
+            {"role": "user", "content": message.content}
+        ])
+        
+        return {"response": response.content}
+    except Exception as e:
+        print(f"Error in general agriculture chat: {e}")
+        return {"response": "I'm having trouble processing your request right now. Please try again later."}
 
 @router.post("/search")
 async def semantic_search(
