@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useLocation } from 'react-router-dom'
 import { MessageSquare, Camera, Cloud, FileText, TrendingUp, Plus, ChevronDown, Sprout, ArrowRight, Zap, X } from 'lucide-react'
 import { motion } from 'framer-motion'
 import CropMainPanelSimple from '../components/dashboard/CropMainPanelSimple'
@@ -8,6 +9,7 @@ import { api } from '../utils/api'
 
 const CropDashboard = () => {
   const { user } = useAuth()
+  const location = useLocation()
   const [crops, setCrops] = useState([])
   const [selectedCrop, setSelectedCrop] = useState(null)
   const [showFeaturePanel, setShowFeaturePanel] = useState(false)
@@ -68,6 +70,11 @@ const CropDashboard = () => {
       fetchCrops()
     }
   }, [user])
+
+  // Reset feature panel when navigating to /crops
+  useEffect(() => {
+    setShowFeaturePanel(false)
+  }, [location])
 
   const fetchCrops = async () => {
     try {

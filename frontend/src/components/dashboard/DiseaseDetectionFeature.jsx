@@ -222,7 +222,7 @@ const DiseaseDetectionFeature = ({ selectedCrop, diseaseHistory, setDiseaseHisto
             <h3 className="text-xl font-semibold text-text-primary">Disease Detection History</h3>
             <button
               onClick={() => setDiseaseView('upload')}
-              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
+              className="bg-accent-meadow text-white px-4 py-2 rounded-lg hover:bg-accent-olive transition-colors flex items-center space-x-2"
             >
               <Camera className="h-4 w-4" />
               <span>Upload Image</span>
@@ -230,15 +230,20 @@ const DiseaseDetectionFeature = ({ selectedCrop, diseaseHistory, setDiseaseHisto
           </div>
           
           {diseaseHistory.length === 0 ? (
-            <div className="text-center py-12">
-              <Camera className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h4 className="text-lg font-semibold text-text-primary mb-2">No images analyzed yet</h4>
-              <p className="text-text-secondary mb-4">Upload your first crop image for disease detection</p>
+            <div className="bg-gradient-to-br from-accent-meadow/10 via-accent-sage/5 to-accent-olive/10 backdrop-blur-md border border-accent-sage/30 rounded-xl p-12 text-center shadow-xl">
+              <div className="bg-accent-meadow/20 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Camera className="h-10 w-10 text-accent-olive" />
+              </div>
+              <h4 className="text-xl font-semibold text-text-primary mb-3">No Disease Analysis Yet</h4>
+              <p className="text-text-secondary mb-6 max-w-md mx-auto">
+                Upload your first {selectedCrop.name} image to get AI-powered disease detection and personalized treatment recommendations.
+              </p>
               <button
                 onClick={() => setDiseaseView('upload')}
-                className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                className="bg-accent-meadow text-white px-8 py-3 rounded-lg hover:bg-accent-olive transition-colors font-medium inline-flex items-center space-x-2 shadow-lg"
               >
-                Get Started
+                <Camera className="h-5 w-5" />
+                <span>Start Analysis</span>
               </button>
             </div>
           ) : (
@@ -249,8 +254,8 @@ const DiseaseDetectionFeature = ({ selectedCrop, diseaseHistory, setDiseaseHisto
                   className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-center space-x-4">
-                    <div className="w-16 h-16 bg-red-100 rounded-lg flex items-center justify-center">
-                      <Camera className="h-8 w-8 text-red-600" />
+                    <div className="w-16 h-16 bg-accent-meadow/20 rounded-lg flex items-center justify-center">
+                      <Camera className="h-8 w-8 text-accent-olive" />
                     </div>
                     <div className="flex-1 cursor-pointer" onClick={() => selectPrediction(prediction)}>
                       <p className="font-semibold text-gray-900">
@@ -300,10 +305,12 @@ const DiseaseDetectionFeature = ({ selectedCrop, diseaseHistory, setDiseaseHisto
           </div>
           
           <div className="max-w-2xl mx-auto">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-gray-400 transition-colors">
-              <Camera className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h4 className="text-lg font-semibold text-text-primary mb-2">Upload {selectedCrop.name} Image</h4>
-              <p className="text-text-secondary mb-6">Take a clear photo of leaves, fruits, or affected plant parts</p>
+            <div className="bg-gradient-to-br from-accent-meadow/10 via-accent-sage/5 to-accent-olive/10 backdrop-blur-md border-2 border-dashed border-accent-sage/30 rounded-xl p-12 text-center hover:border-accent-sage/50 transition-colors shadow-xl">
+              <div className="bg-accent-meadow/20 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Camera className="h-10 w-10 text-accent-olive" />
+              </div>
+              <h4 className="text-xl font-semibold text-text-primary mb-3">Upload {selectedCrop.name} Image</h4>
+              <p className="text-text-secondary mb-6">Take a clear photo of leaves, fruits, or affected plant parts for AI analysis</p>
               <input
                 type="file"
                 accept="image/*"
@@ -313,7 +320,7 @@ const DiseaseDetectionFeature = ({ selectedCrop, diseaseHistory, setDiseaseHisto
               />
               <label
                 htmlFor="disease-image-upload"
-                className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors cursor-pointer inline-flex items-center space-x-2"
+                className="bg-accent-meadow text-white px-8 py-3 rounded-lg hover:bg-accent-olive transition-colors cursor-pointer inline-flex items-center space-x-2 font-medium shadow-lg"
               >
                 <Upload className="h-5 w-5" />
                 <span>Choose Image</span>
@@ -336,7 +343,7 @@ const DiseaseDetectionFeature = ({ selectedCrop, diseaseHistory, setDiseaseHisto
             
             {isAnalyzing ? (
               <div className="text-center py-8">
-                <div className="animate-spin w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+                <div className="animate-spin w-8 h-8 border-4 border-accent-meadow border-t-transparent rounded-full mx-auto mb-4"></div>
                 <p className="text-gray-600">Analyzing your {selectedCrop.name} image...</p>
               </div>
             ) : currentPrediction && (
@@ -353,24 +360,47 @@ const DiseaseDetectionFeature = ({ selectedCrop, diseaseHistory, setDiseaseHisto
           {currentPrediction && !isAnalyzing && (
             <div className="grid lg:grid-cols-3 gap-6 p-6">
               {/* Left Panel - Image and Options */}
-              <div className="lg:col-span-1 space-y-6">
+              <div className="lg:col-span-1 space-y-4">
                 {/* Image Card */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-lg font-semibold mb-4">Analysis Image</h3>
+                <div className="bg-white border border-gray-200 rounded-xl shadow-xl p-4">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <div className="bg-accent-meadow/20 p-1.5 rounded-lg">
+                      <Camera className="h-4 w-4 text-accent-olive" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-text-primary">Analysis Image</h3>
+                  </div>
                   <img
                     src={currentPrediction.image}
                     alt="Analyzed crop"
-                    className="w-full h-32 object-cover rounded-lg mb-3"
+                    className="w-20 h-20 object-cover rounded-lg mb-3 mx-auto"
                   />
-                  <p className="text-sm text-gray-600 text-center">
-                    Analyzed: {currentPrediction.timestamp.toLocaleDateString()}
-                  </p>
+                  <div className="text-center">
+                    <p className="text-xs text-text-secondary">
+                      {currentPrediction.timestamp.toLocaleDateString()}
+                    </p>
+                    <div className="flex items-center justify-center space-x-2 mt-2">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        currentPrediction.severity === 'Low' ? 'bg-green-100 text-green-700' :
+                        currentPrediction.severity === 'Moderate' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-red-100 text-red-700'
+                      }`}>
+                        {currentPrediction.severity}
+                      </span>
+                      <span className="text-xs font-medium text-accent-meadow">
+                        {currentPrediction.confidence}%
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 
                 {/* AI Recommendations Card */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-lg font-semibold mb-4">AI Recommendations</h3>
-                  <div className="text-xs text-gray-500 mb-2">Debug: showPrecautions={showPrecautions.toString()}, showTreatment={showTreatment.toString()}</div>
+                <div className="bg-white border border-gray-200 rounded-xl shadow-xl p-4">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <div className="bg-accent-meadow/20 p-1.5 rounded-lg">
+                      <Shield className="h-4 w-4 text-accent-olive" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-text-primary">AI Recommendations</h3>
+                  </div>
                   <select
                     onChange={async (e) => {
                       console.log('=== DROPDOWN SELECTION ===')
@@ -434,7 +464,7 @@ const DiseaseDetectionFeature = ({ selectedCrop, diseaseHistory, setDiseaseHisto
                         setShowTreatment(false)
                       }
                     }}
-                    className="w-full p-2 border border-gray-300 rounded-lg mb-4"
+                    className="w-full p-2 bg-white/80 backdrop-blur-sm border border-accent-sage/30 rounded-lg mb-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-meadow"
                   >
                     <option value="">Select recommendation type</option>
                     <option value="precautions">Precautions</option>
@@ -481,19 +511,23 @@ const DiseaseDetectionFeature = ({ selectedCrop, diseaseHistory, setDiseaseHisto
               
               {/* Right Panel - Chat Interface */}
               <div className="lg:col-span-2">
-                <div className="bg-white rounded-lg shadow-md" style={{height: 'calc(100vh - 200px)'}}>
+                <div className="bg-white border border-gray-200 rounded-xl shadow-xl" style={{height: 'calc(100vh - 200px)'}}>
                   <div className="flex flex-col h-full">
                     {/* Chat Header */}
-                    <div className="flex justify-between items-center p-4 border-b border-white/20">
+                    <div className="flex justify-between items-center p-4 border-b border-gray-200">
                       <div className="flex items-center space-x-2">
-                        <Bot className="h-5 w-5 text-accent-meadow" />
-                        <h3 className="text-lg font-semibold text-text-primary">Disease Assistant</h3>
+                        <div className="bg-accent-meadow/20 p-2 rounded-lg">
+                          <Bot className="h-5 w-5 text-accent-olive" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-text-primary">Disease Assistant</h3>
+                          <p className="text-xs text-text-secondary">{currentPrediction.disease}</p>
+                        </div>
                       </div>
-                      <p className="text-sm text-text-secondary">Ask questions about {currentPrediction.disease}</p>
                     </div>
                     
                     {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
                       {chatMessages.map((message) => (
                         <div
                           key={message.id}
@@ -511,11 +545,11 @@ const DiseaseDetectionFeature = ({ selectedCrop, diseaseHistory, setDiseaseHisto
                                 <Bot className="h-4 w-4 text-white" />
                               )}
                             </div>
-                            <div className={`rounded-lg px-3 py-2 ${
-                              message.type === 'user' ? 'bg-accent-sage text-white' : 'glass-card border border-white/10'
+                            <div className={`rounded-lg px-3 py-2 shadow-md ${
+                              message.type === 'user' ? 'bg-accent-sage text-white' : 'bg-white border border-accent-meadow/30'
                             }`}>
                               <div className={`text-sm font-medium mb-1 ${
-                                message.type === 'user' ? 'text-white/90' : 'text-text-secondary'
+                                message.type === 'user' ? 'text-white/90' : 'text-accent-olive'
                               }`}>
                                 {message.type === 'user' ? 'You' : 'Assistant'}
                               </div>
@@ -536,10 +570,10 @@ const DiseaseDetectionFeature = ({ selectedCrop, diseaseHistory, setDiseaseHisto
                             <div className="w-8 h-8 rounded-full bg-accent-meadow flex items-center justify-center">
                               <Bot className="h-4 w-4 text-white" />
                             </div>
-                            <div className="glass-card border border-white/10 rounded-lg px-3 py-2">
+                            <div className="bg-white border border-accent-meadow/30 rounded-lg px-3 py-2 shadow-md">
                               <div className="flex items-center space-x-2">
                                 <div className="animate-spin w-3 h-3 border-2 border-accent-meadow border-t-transparent rounded-full"></div>
-                                <span className="text-sm text-text-secondary">Thinking...</span>
+                                <span className="text-sm text-accent-olive">Thinking...</span>
                               </div>
                             </div>
                           </div>
@@ -548,20 +582,20 @@ const DiseaseDetectionFeature = ({ selectedCrop, diseaseHistory, setDiseaseHisto
                     </div>
                     
                     {/* Input */}
-                    <div className="p-4 border-t border-white/20">
+                    <div className="p-4 border-t border-gray-200 bg-gray-50">
                       <form onSubmit={handleSendMessage} className="flex space-x-3">
                         <input
                           type="text"
                           value={inputMessage}
                           onChange={(e) => setInputMessage(e.target.value)}
                           placeholder="Ask about this disease..."
-                          className="flex-1 px-4 py-2 text-sm glass-card border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-meadow text-text-primary placeholder-text-secondary"
+                          className="flex-1 px-4 py-2 text-sm bg-white/80 backdrop-blur-sm border border-accent-sage/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-meadow text-text-primary placeholder-text-secondary"
                           disabled={isLoadingChat}
                         />
                         <button
                           type="submit"
                           disabled={!inputMessage.trim() || isLoadingChat}
-                          className="bg-accent-meadow text-white px-4 py-2 rounded-lg hover:bg-accent-meadow/80 transition-colors disabled:opacity-50"
+                          className="bg-accent-meadow text-white px-4 py-2 rounded-lg hover:bg-accent-olive transition-colors disabled:opacity-50 shadow-lg"
                         >
                           <Send className="h-4 w-4" />
                         </button>

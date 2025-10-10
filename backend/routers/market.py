@@ -1374,29 +1374,6 @@ async def sync_states_districts_to_db(db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error syncing: {str(e)}")
 
-@router.get("/db-status")
-async def get_db_status(db: Session = Depends(get_db)):
-    """View what's stored in database"""
-    districts = db.query(District).all()
-    
-    if not districts:
-        return {"message": "Database is empty", "total_states": 0, "total_districts": 0, "data": {}}
-    
-    result = {}
-    for district in districts:
-        if district.state not in result:
-            result[district.state] = []
-        result[district.state].append(district.name)
-    
-    for state in result:
-        result[state] = sorted(result[state])
-    
-    return {
-        "total_states": len(result),
-        "total_districts": len(districts),
-        "data": result
-    }
-
 @router.get("/states-districts-db")
 async def get_states_districts_from_db(db: Session = Depends(get_db)):
     """Get all states with their districts from database for frontend dropdowns"""
