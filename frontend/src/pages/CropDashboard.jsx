@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useLocation } from 'react-router-dom'
-import { MessageSquare, Camera, Cloud, FileText, TrendingUp, Plus, ChevronDown, Sprout, ArrowRight, Zap, X } from 'lucide-react'
+import { MessageSquare, Camera, Cloud, FileText, TrendingUp, Plus, ChevronDown, Sprout, ArrowRight, Zap, X, Trash2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import CropMainPanelSimple from '../components/dashboard/CropMainPanelSimple'
 import AddCropModal from '../components/modals/AddCropModal'
@@ -103,6 +103,27 @@ const CropDashboard = () => {
       }
     } catch (error) {
       console.error('Error adding crop:', error)
+    }
+  }
+
+  const handleDeleteCrop = async (cropId, cropName) => {
+    if (!confirm(`Are you sure you want to delete ${cropName}?`)) {
+      return
+    }
+    
+    try {
+      const response = await api.deleteCrop(cropId)
+      if (response.ok) {
+        setCrops(crops.filter(crop => crop.id !== cropId))
+        if (selectedCrop?.id === cropId) {
+          setSelectedCrop(null)
+        }
+      } else {
+        alert('Failed to delete crop')
+      }
+    } catch (error) {
+      console.error('Error deleting crop:', error)
+      alert('Error deleting crop')
     }
   }
 
@@ -312,16 +333,18 @@ const CropDashboard = () => {
                 </div>
               ) : (
                 crops.map(crop => (
-                  <button
+                  <div
                     key={crop.id}
-                    onClick={() => {
-                      setSelectedCrop(crop)
-                      setShowCropModal(false)
-                    }}
-                    className="w-full p-4 bg-white/80 backdrop-blur-sm border border-accent-meadow/20 rounded-lg hover:bg-accent-meadow/5 hover:border-accent-meadow/40 transition-all text-left group shadow-sm hover:shadow-md"
+                    className="w-full p-4 bg-white/80 backdrop-blur-sm border border-accent-meadow/20 rounded-lg hover:bg-accent-meadow/5 hover:border-accent-meadow/40 transition-all group shadow-sm hover:shadow-md"
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
+                      <button
+                        onClick={() => {
+                          setSelectedCrop(crop)
+                          setShowCropModal(false)
+                        }}
+                        className="flex items-center space-x-3 flex-1 text-left"
+                      >
                         <div className="w-8 h-8 bg-accent-meadow/20 rounded-lg flex items-center justify-center group-hover:bg-accent-meadow/30 transition-all shadow-sm">
                           <Sprout className="h-4 w-4 text-accent-meadow transition-colors" />
                         </div>
@@ -331,10 +354,22 @@ const CropDashboard = () => {
                             <p className="text-sm text-text-secondary font-medium">{crop.variety}</p>
                           )}
                         </div>
+                      </button>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteCrop(crop.id, crop.name)
+                          }}
+                          className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                          title="Delete crop"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                        <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-accent-meadow transition-colors" />
                       </div>
-                      <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-accent-meadow transition-colors" />
                     </div>
-                  </button>
+                  </div>
                 ))
               )}
             </div>

@@ -160,7 +160,6 @@ const AddCropModal = ({ isOpen, onClose, onSave }) => {
             display: none;
           }
         `}</style>
-      >
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">

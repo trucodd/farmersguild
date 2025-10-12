@@ -26,23 +26,30 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-accent-meadow/10 via-accent-sage/10 to-accent-olive/10 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-accent-meadow/20 via-accent-sage/15 to-accent-olive/25 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute top-0 left-0 w-72 h-72 bg-accent-meadow/10 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent-sage/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-accent-olive/5 rounded-full blur-2xl"></div>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
         className="max-w-md w-full space-y-8"
       >
-        <div className="relative overflow-hidden rounded-2xl p-8 bg-gradient-to-br from-accent-sage/25 via-accent-olive/20 to-accent-meadow/15 backdrop-blur-md border border-white/30 shadow-xl">
-          <div className="absolute inset-0 bg-black/5"></div>
-          <div className="absolute top-0 right-0 w-24 h-24 bg-accent-sage/10 rounded-full blur-2xl"></div>
+        <div className="relative overflow-hidden rounded-3xl p-8 bg-gradient-to-br from-white/90 via-accent-sage/5 to-accent-meadow/10 backdrop-blur-xl border border-accent-sage/20 shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-accent-meadow/5 via-transparent to-accent-olive/5"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-accent-sage/20 to-accent-meadow/10 rounded-full blur-2xl"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-accent-olive/15 rounded-full blur-xl"></div>
           <div className="relative z-10">
           <div className="text-center">
             <div className="flex justify-center mb-4">
-              <Sprout className="h-12 w-12 text-accent-meadow" />
+              <div className="p-3 bg-gradient-to-br from-accent-meadow to-accent-sage rounded-2xl shadow-lg">
+                <Sprout className="h-12 w-12 text-white" />
+              </div>
             </div>
-            <h2 className="text-3xl font-bold text-text-primary mb-2">Welcome Back</h2>
-            <p className="text-text-secondary">Sign in to your Farmers Guild account</p>
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-text-primary to-accent-olive bg-clip-text text-transparent mb-2">Welcome Back</h2>
+            <p className="text-text-secondary/80">Sign in to your Farmers Guild account</p>
           </div>
 
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -62,7 +69,7 @@ const Login = () => {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-3 bg-white/80 border border-accent-sage/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-meadow focus:border-transparent backdrop-blur-sm"
+                    className="block w-full pl-10 pr-3 py-3 bg-white/90 border border-accent-sage/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-meadow/60 focus:border-accent-meadow/50 backdrop-blur-sm transition-all duration-200 hover:bg-white/95"
                     placeholder="Enter your email"
                   />
                 </div>
@@ -83,7 +90,7 @@ const Login = () => {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full pl-10 pr-10 py-3 bg-white/80 border border-accent-sage/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-meadow focus:border-transparent backdrop-blur-sm"
+                    className="block w-full pl-10 pr-10 py-3 bg-white/90 border border-accent-sage/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-meadow/60 focus:border-accent-meadow/50 backdrop-blur-sm transition-all duration-200 hover:bg-white/95"
                     placeholder="Enter your password"
                   />
                   <button
@@ -107,13 +114,13 @@ const Login = () => {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 text-accent-meadow focus:ring-accent-meadow border-accent-sage/30 rounded"
+                  className="h-4 w-4 text-accent-meadow focus:ring-accent-meadow/60 border-accent-sage/40 rounded transition-colors duration-200"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-text-primary">
                   Remember me
                 </label>
               </div>
-              <Link to="/forgot-password" className="text-sm text-accent-meadow hover:text-accent-sage">
+              <Link to="/forgot-password" className="text-sm text-accent-meadow hover:text-accent-sage transition-colors duration-200 font-medium">
                 Forgot password?
               </Link>
             </div>
@@ -121,7 +128,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="accent-button w-full py-3 px-4 text-sm font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 px-4 text-sm font-semibold rounded-xl bg-gradient-to-r from-accent-meadow to-accent-sage hover:from-accent-meadow/90 hover:to-accent-sage/90 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
@@ -129,7 +136,7 @@ const Login = () => {
             <div className="text-center">
               <p className="text-sm text-text-secondary">
                 Don't have an account?{' '}
-                <Link to="/register" className="font-medium text-accent-meadow hover:text-accent-sage">
+                <Link to="/register" className="font-semibold text-accent-meadow hover:text-accent-sage transition-colors duration-200">
                   Sign up here
                 </Link>
               </p>
